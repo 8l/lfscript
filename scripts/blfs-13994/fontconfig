@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.1.tar.bz2"
+MD5SUMLIST="824d000eb737af6e16c826dd3b2d6c90"
+REQUIRES="freetype2"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --localstatedir=/var \
+            --disable-docs       \
+            --docdir=/usr/share/doc/fontconfig-2.11.1
+make
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -dm755 \
+        ${FAKEROOT}/usr/share/{man/man{3,5},doc/fontconfig-2.11.1/fontconfig-devel}
+install -v -m644 fc-*/*.1          ${FAKEROOT}/usr/share/man/man1
+install -v -m644 doc/*.3           ${FAKEROOT}/usr/share/man/man3
+install -v -m644 doc/fonts-conf.5  ${FAKEROOT}/usr/share/man/man5
+install -v -m644 doc/fontconfig-devel/* \
+        ${FAKEROOT}/usr/share/doc/fontconfig-2.11.1/fontconfig-devel
+install -v -m644 doc/*.{pdf,sgml,txt,html} \
+       ${FAKEROOT}/usr/share/doc/fontconfig-2.11.1
+
+#################
+} # END OF FILE #
+#################
+

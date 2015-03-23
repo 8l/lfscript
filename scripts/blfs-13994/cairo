@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://cairographics.org/releases/cairo-1.12.16.tar.xz"
+MD5SUMLIST="a1304edcdc99282f478b995ee5f8f854"
+REQUIRES="glib2 libpng pixman"
+RECOMMENDS="xorg"
+
+# (*) Install 'xorg' because it is required to build GTK+2
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+CFLAGS="$CFLAGS -ffat-lto-objects" \
+./configure --prefix=/usr    \
+            --disable-static \
+            --enable-tee
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

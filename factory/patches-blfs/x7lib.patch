@@ -1,0 +1,16 @@
+diff -rupN old/BOOK/x/installing/x7lib.xml new/BOOK/x/installing/x7lib.xml
+--- old/BOOK/x/installing/x7lib.xml	2014-06-09 19:31:55.000000000 +0200
++++ new/BOOK/x/installing/x7lib.xml	2014-06-30 21:39:22.619121400 +0200
+@@ -302,8 +302,10 @@ done</userinput></screen>
+     to satisfy the expected environment of several packages.
+     Execute the following commands as the root user:</para>
+ 
+-<screen role="root"><userinput>ln -sv $XORG_PREFIX/lib/X11 /usr/lib/X11 &amp;&amp;
+-ln -sv $XORG_PREFIX/include/X11 /usr/include/X11</userinput></screen>
++<screen role="root"><userinput>if [ "$XORG_PREFIX" != "/usr" ]; then
++    ln -sv $XORG_PREFIX/lib/X11 /usr/lib/X11 &amp;&amp;
++    ln -sv $XORG_PREFIX/include/X11 /usr/include/X11
++fi</userinput></screen>
+ 
+   </sect2>
+ 

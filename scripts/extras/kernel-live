@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.16.1.tar.xz
+          http://download.filesystems.org/unionfs/unionfs-2.x-latest/unionfs-2.6_for_3.16.1.diff.gz"
+MD5SUMLIST="e7a985a243b7941b6bc6240fcbc797fc
+            f2c22645a7306720a8278acae72969cd"
+TAGS="kernel"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+# Add UnionFS to the kernel
+cp -v ../$(readlink ../unionfs-2.6_for_3.16.1.diff.gz) .
+gzip -d unionfs-2.6_for_3.16.1.diff.gz
+patch -Np1 -i unionfs-2.6_for_3.16.1.diff
+
+# Add UnionFS to the kernel configuration
+echo "CONFIG_UNION_FS=y"                  >> .config
+echo "# CONFIG_UNION_FS_XATTR is not set" >> .config
+echo "# CONFIG_UNION_FS_DEBUG is not set" >> .config
+
+# Ensure SquashFS is selected in the kernel configuration
+if [ "$(cat .config | grep '# CONFIG_SQUASHFS is not set')" ]; then
+    sed -i "s@# CONFIG_SQUASHFS is not set@@g" .config
+
+    echo "CONFIG_SQUASHFS=y"                                >> .config
+    echo "CONFIG_SQUASHFS_FILE_CACHE=y"                     >> .config
+    echo "# CONFIG_SQUASHFS_FILE_DIRECT is not set"         >> .config
+    echo "CONFIG_SQUASHFS_DECOMP_SINGLE=y"                  >> .config
+    echo "# CONFIG_SQUASHFS_DECOMP_MULTI is not set"        >> .config
+    echo "# CONFIG_SQUASHFS_DECOMP_MULTI_PERCPU is not set" >> .config
+    echo "# CONFIG_SQUASHFS_XATTR is not set"               >> .config
+    echo "CONFIG_SQUASHFS_ZLIB=y"                           >> .config
+    echo "CONFIG_SQUASHFS_LZO=y"                            >> .config
+    echo "CONFIG_SQUASHFS_XZ=y"                             >> .config
+    echo "# CONFIG_SQUASHFS_4K_DEVBLK_SIZE is not set"      >> .config
+    echo "# CONFIG_SQUASHFS_EMBEDDED is not set"            >> .config
+    echo "CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE=3"            >> .config
+fi
+
+# Compile
+make
+
+# Install
+cp -v arch/x86/boot/bzImage ${FAKEROOT}/boot/vmlinuz-3.16.1-live
+cp -v .config ${FAKEROOT}/boot/config-3.16.1-live
+
+#################
+} # END OF FILE #
+#################
+

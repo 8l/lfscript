@@ -1,0 +1,351 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="rootfs-$(uname -m).img"
+MD5SUMLIST="dontverify"
+REQUIRES="buildiso-dep"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cat > isolinux.cfg << EOF
+DEFAULT menu.c32
+PROMPT 0
+MENU TITLE Select an option...
+TIMEOUT 300
+
+LABEL live
+    MENU LABEL ^Boot the live system ($(uname -m))
+    MENU DEFAULT
+    KERNEL /boot/$(uname -m)/vmlinuz
+    APPEND initrd=/boot/$(uname -m)/initram.fs quiet
+
+LABEL harddisk
+    MENU LABEL Boot from first ^Hard disk
+    LOCALBOOT 0x80
+
+EOF
+
+cat > init.sh << "EndOfFile"
+#!/bin/busybox sh
+
+# Initramfs boot script 1.3.3 (2014-06-14)
+# Copyright (c) 2010-2014   Marcel van den Boer
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+
+# FS layout at the start of this script:
+# - /boot/id_label
+# - /bin/busybox
+# - /dev/console (created by kernel)
+# - /init (this file)
+
+set -e
+
+ARCH="<ARCH>"
+
+###########################################
+copyBindMount() { # COPY/BIND LIVECD MODE #
+###########################################
+
+# This function bind-mounts directories which are designed to be capable of
+# read-only access and copies the remaining directories to a tmpfs.
+#
+# The downside of this method is that the resulting root filesystem is not
+# fully writable. So, for example, installation of new programs will not be
+# possible.
+#
+# However, this function can be used without any modification to the kernel and
+# is therefore perfect for use as a fallback if other options are not available.
+
+# Mount a tmpfs where the new rootfs will be.
+mount -t tmpfs tmpfs ${ROOT} # Allows remounting root in the bootscripts
+
+# Bind mount read-only filesystems, copy the rest
+cd /mnt/system
+for dir in $(ls -1); do
+    case ${dir} in
+        lost+found)
+            ;;
+        bin | boot | lib | opt | sbin | usr)
+            mkdir ${ROOT}/${dir}
+            mount --bind ${dir} ${ROOT}/${dir}
+            ;;
+        *)
+            cp -R ${dir} ${ROOT}
+            ;;
+    esac
+done
+cd /
+
+#########################################
+}; unionMount() { # UNIONFS LIVECD MODE #
+#########################################
+
+# A union mount takes one or more directories and combines them transparantly
+# in a third. This function creates a writable directory in memory (tmpfs) and
+# uses it to overlay the read-only system image, resulting in a fully writable
+# root file system.
+#
+# The only downside to this method is that it requires a union type filesystem
+# in the kernel, which can only be accomplished by patching the kernel as there
+# is no such feature in a vanilla kernel.
+
+mkdir -p /mnt/writable
+mount -t tmpfs -o rw tmpfs /mnt/writable
+
+UNIONFSOPT="/mnt/writable=rw:/mnt/system=ro"
+mount -t unionfs -o dirs=${UNIONFSOPT} unionfs ${ROOT} 2> /dev/null || {
+
+    # If UnionFS fails, fall back to copy/bind mounting
+    copyBindMount
+}
+
+######################
+} # END OF FUNCTIONS #
+######################
+
+# Make required applets easier to access
+for applet in cat chmod cp cut grep ls mkdir mknod mount umount switch_root; do
+    /bin/busybox ln /bin/busybox /bin/${applet}
+done
+
+# Clear the screen
+#clear # Don't! This will clear the Linux boot logo when using a framebuffer.
+       # If you want to clear the screen on boot add the "clear" command to
+       # '/usr/share/live/sec_init.sh' in the system image.
+
+# Create device nodes required to run this script
+# Note: /dev/console will already be available in the ramfs
+mknod /dev/null c  1  3
+
+mknod /dev/scd0 b 11  0  # +--------
+mknod /dev/scd1 b 11  1  # |
+mknod /dev/scd2 b 11  2  # |
+mknod /dev/scd3 b 11  3  # |
+                         # |
+mknod /dev/sda  b  8  0  # |
+mknod /dev/sda1 b  8  1  # |
+mknod /dev/sda2 b  8  2  # |
+mknod /dev/sda3 b  8  3  # |
+mknod /dev/sda4 b  8  4  # |
+                         # |
+mknod /dev/sdb  b  8 16  # |    <----
+mknod /dev/sdb1 b  8 17  # |        Devices which could be or contain the
+mknod /dev/sdb2 b  8 18  # |        boot medium...
+mknod /dev/sdb3 b  8 19  # |
+mknod /dev/sdb4 b  8 20  # |
+                         # |
+mknod /dev/sdc  b  8 32  # |
+mknod /dev/sdc1 b  8 33  # |
+mknod /dev/sdc2 b  8 34  # |
+mknod /dev/sdc3 b  8 35  # |
+mknod /dev/sdc4 b  8 36  # |
+                         # |
+mknod /dev/sdd  b  8 48  # |
+mknod /dev/sdd1 b  8 49  # |
+mknod /dev/sdd2 b  8 50  # |
+mknod /dev/sdd3 b  8 51  # |
+mknod /dev/sdd4 b  8 52  # +--------
+
+# Create mount points for filesystems
+mkdir -p /mnt/medium
+mkdir -p /mnt/system
+mkdir -p /mnt/rootfs
+
+# Mount the /proc filesystem (enables filesystem detection for 'mount')
+mkdir /proc
+mount -t proc proc /proc
+
+# Search for, and mount the boot medium
+LABEL="$(cat /boot/id_label)"
+for device in $(ls /dev); do
+    [ "${device}" == "console" ] && continue
+    [ "${device}" == "null"    ] && continue
+
+    mount -o ro /dev/${device} /mnt/medium 2> /dev/null && \
+    if [ "$(cat /mnt/medium/boot/${ARCH}/id_label)" != "${LABEL}" ]; then
+        umount /mnt/medium
+    else
+        DEVICE="${device}"
+        break
+    fi
+done
+
+if [ "${DEVICE}" == "" ]; then
+    echo "STOP: Boot medium not found."
+    exec /bin/busybox sh
+fi
+
+# Mount the system image
+mount -t squashfs -o ro,loop /mnt/medium/boot/${ARCH}/root.sfs /mnt/system || {
+    if [ -r /mnt/medium/boot/${ARCH}/root.sfs ]; then
+        echo "STOP: Unable to mount system image. The kernel probably lacks"
+        echo "      SquashFS support. You may need to recompile it."
+    else
+        echo "STOP: Unable to mount system image. It seems to be missing."
+    fi
+
+    exec /bin/busybox sh
+}
+
+# Define where the new root filesystem will be
+ROOT="/mnt/rootfs" # Also needed for /usr/share/live/sec_init.sh
+
+# Select LiveCD mode
+unionMount # Might fall back to copyBindMount
+
+# Move current mounts to directories accessible in the new root
+cd /mnt
+for dir in $(ls -1); do
+    if [ "${dir}" != "rootfs" ]; then
+        mkdir -p ${ROOT}/mnt/.boot/${dir}
+        mount --move /mnt/${dir} ${ROOT}/mnt/.boot/${dir}
+    fi
+done
+cd /
+
+# If the boot medium is a CD, eject it on shutdown
+[ "$(mount | grep iso9660)" != "" ] && \
+cat > ${ROOT}/etc/rc.d/rc0.d/S98eject << EOF
+#!/bin/sh
+
+if [ -x /usr/bin/cdrecord ]; then
+    /usr/bin/cdrecord -eject dev=/dev/${DEVICE} &> /dev/null
+
+    echo -e "\033[31m"
+    echo -en "Remove the boot medium, close the tray (if any), "
+    echo -en "then press ENTER to power off."
+    echo -e "\033[0m"
+
+    read
+fi
+EOF
+chmod +x ${ROOT}/etc/rc.d/rc0.d/S98eject
+
+# Run secondary initialization (if the system provides it)
+if [ -x ${ROOT}/usr/share/live/sec_init.sh ]; then
+    . ${ROOT}/usr/share/live/sec_init.sh
+fi
+
+# Clean up
+umount /proc
+
+# Switch to the new root and launch INIT!
+exec switch_root -c /dev/console ${ROOT} /sbin/init
+
+EndOfFile
+
+dd if=/dev/random of=id_label bs=1 count=64
+
+mkdir -pv mnt_init/{bin,boot}
+cp -v id_label mnt_init/boot
+cp -v /bin/busybox mnt_init/bin
+mv init.sh mnt_init/init
+sed -i "s/<ARCH>/$(uname -m)/g" mnt_init/init
+chmod +x mnt_init/init
+
+pushd mnt_init
+find . | /bin/busybox cpio -o -H newc -F ../initramfs.cpio
+popd
+gzip -9 initramfs.cpio
+rm -rf mnt_init
+
+mkdir mnt
+mount -o loop,ro rootfs-$(uname -m).img mnt
+
+FAIL="0"
+
+if [ ! -r mnt/usr/bin/$(uname -m)-*linux-gnu-gcc ]; then
+    echo -n "ERROR: Unable to verify image architecture; Your system image does"
+    echo " not contain the file '/usr/bin/$(uname -m)-*linux-gnu-gcc'"
+    FAIL="1"
+fi
+
+if [ ! -d mnt/etc ]; then
+    echo "ERROR: Your system image does not contain the directory '/etc'"
+    FAIL="1"
+fi
+
+if [ ! -x mnt/sbin/init ]; then
+    echo "ERROR: Your system image does not contain the executable '/sbin/init'"
+    FAIL="1"
+fi
+
+if [ ! -e mnt/dev/console ]; then
+    echo "ERROR: Your system image does not contain the device '/dev/console'"
+    FAIL="1"
+fi
+
+if [ "${FAIL}" == "1" ]; then
+    return 1
+fi
+
+mksquashfs mnt root.sfs -comp xz
+
+mkdir -p live/boot/{isolinux,$(uname -m)}
+cp -v /usr/share/syslinux/isolinux.bin live/boot/isolinux
+
+# Prefer kernels marked 'live'
+if [ -e mnt/boot/vmlinuz-*-live ]; then
+    cp -v mnt/boot/vmlinuz-*-live live/boot/$(uname -m)/vmlinuz
+    cp -v mnt/boot/config-*-live  live/boot/$(uname -m)/config
+else
+    cp -v mnt/boot/vmlinuz-*      live/boot/$(uname -m)/vmlinuz
+    cp -v mnt/boot/config-*       live/boot/$(uname -m)/config
+fi
+
+if [ -e "mnt/usr/share/live/medium" ]; then
+    cp -vR mnt/usr/share/live/medium/* live
+fi
+
+umount mnt
+rm -rf mnt
+
+if [ ! -e "live/boot/isolinux/isolinux.cfg" ]; then
+    cp -v /usr/share/syslinux/menu.c32 live/boot/isolinux
+    mv -v isolinux.cfg                 live/boot/isolinux
+else
+    rm -rf isolinux.cfg
+fi
+
+mv -v root.sfs live/boot/$(uname -m)
+mv -v id_label live/boot/$(uname -m)
+mv -v initramfs.cpio.gz live/boot/$(uname -m)/initram.fs
+
+xorrisofs -o system-$(uname -m).iso     \
+          -b boot/isolinux/isolinux.bin \
+          -c boot.cat                   \
+          -no-emul-boot                 \
+          -boot-load-size 4             \
+          -boot-info-table              \
+          -joliet -l -R                 \
+          live
+rm -rf live
+
+mkdir -p /sources/buildmgr/newpackages
+mv -v system-$(uname -m).iso /sources/buildmgr/newpackages
+
+#################
+} # END OF FILE #
+#################
+

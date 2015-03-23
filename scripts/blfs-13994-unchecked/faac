@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/faac/faac-1.28.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/faac-1.28-glibc_fixes-1.patch"
+MD5SUMLIST="c5dde68840cefe46532089c9392d1df0
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../faac-1.28-glibc_fixes-1.patch
+sed -i -e '/obj-type/d' -e '/Long Term/d' frontend/main.c
+./configure --prefix=/usr --disable-static
+make
+
+./frontend/faac -o Front_Left.mp4 /usr/share/sounds/alsa/Front_Left.wav
+
+faad Front_Left.mp4
+aplay Front_Left.wav
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

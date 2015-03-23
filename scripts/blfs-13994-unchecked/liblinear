@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.csie.ntu.edu.tw/~cjlin/liblinear/oldfiles/liblinear-1.94.tar.gz"
+MD5SUMLIST="f52e1f2dd6bccb58977a334bba0bbf90"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+make lib
+
+install -vm644 linear.h ${FAKEROOT}/usr/include
+install -vm755 liblinear.so.1 ${FAKEROOT}/usr/lib
+ln -sfv liblinear.so.1 ${FAKEROOT}/usr/lib/liblinear.so
+
+#################
+} # END OF FILE #
+#################
+

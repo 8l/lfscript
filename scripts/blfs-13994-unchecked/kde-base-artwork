@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://download.kde.org/stable/4.13.3/src/kde-base-artwork-4.13.3.tar.xz"
+MD5SUMLIST="db31357719eb419c2da9bea80bcb0248"
+REQUIRES="kdelibs"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+mkdir build
+cd    build
+
+cmake -DCMAKE_INSTALL_PREFIX=$KDE_PREFIX -Wno-dev ..
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

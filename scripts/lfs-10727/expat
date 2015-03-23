@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://prdownloads.sourceforge.net/expat/expat-2.1.0.tar.gz"
+MD5SUMLIST="dd7dab7a5fea97d2a6a43f511449b7cd"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -dm755 ${FAKEROOT}/usr/share/doc/expat-2.1.0
+install -v -m644 doc/*.{html,png,css} ${FAKEROOT}/usr/share/doc/expat-2.1.0
+
+#################
+} # END OF FILE #
+#################
+

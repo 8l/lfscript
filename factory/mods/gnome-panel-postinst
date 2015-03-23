@@ -1,0 +1,4 @@
+# (*) Set up and populate Gnome's panels
+gconftool-2 \
+    --config-source="$(gconftool-2 --get-default-source)" --direct \
+    --load /etc/gnome/2.30.2/gconf/schemas/panel-default-setup.entries

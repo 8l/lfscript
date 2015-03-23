@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnome.org/pub/gnome/sources/pygobject/3.12/pygobject-3.12.2.tar.xz"
+MD5SUMLIST="fd9b1e956ee2e2dae544e57b1858596b"
+REQUIRES="gobject-introspection py2cairo pycairo"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i '/test_out_glist/ i\    @unittest.expectedFailure' \
+       tests/test_atoms.py
+
+mkdir python2
+pushd python2
+../configure --prefix=/usr --with-python=/usr/bin/python
+make
+popd
+
+mkdir python3
+pushd python3
+../configure --prefix=/usr --with-python=/usr/bin/python3
+make
+popd
+
+make DESTDIR=${FAKEROOT} -C python2 install
+
+make DESTDIR=${FAKEROOT} -C python3 install
+
+#################
+} # END OF FILE #
+#################
+

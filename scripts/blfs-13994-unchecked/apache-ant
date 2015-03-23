@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://archive.apache.org/dist/ant/source/apache-ant-1.9.4-src.tar.bz2
+          https://archive.apache.org/dist/ant/manual/apache-ant-1.9.4-manual.tar.bz2"
+MD5SUMLIST="7a7253ec047195d755c5318a4de8a3a4
+            dontverify"
+REQUIRES="glib2 java-bin openjdk"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xvf ../hamcrest-1.3.tgz
+cp -v ../junit-4.11.jar \
+      hamcrest-1.3/hamcrest-core-1.3.jar lib/optional
+
+tar -xvf ../apache-ant-1.9.4-manual.tar.bz2
+
+./build.sh -Ddist.dir=/opt/ant-1.9.4 dist
+ln -v -sfn ant-1.9.4 ${FAKEROOT}/opt/ant
+
+install -m755 -d ${FAKEROOT}/opt/ant-1.9.4/docs
+cp -Rv apache-ant-1.9.4/* ${FAKEROOT}/opt/ant-1.9.4/docs
+
+#################
+} # END OF FILE #
+#################
+

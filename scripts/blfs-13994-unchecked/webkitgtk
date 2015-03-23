@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://webkitgtk.org/releases/webkitgtk-1.10.2.tar.xz
+          http://www.linuxfromscratch.org/patches/blfs/svn/webkitgtk-1.10.2-fix_librt_linking-1.patch"
+MD5SUMLIST="7b1a652af1eb11bee5bf7209e9ff67e6
+            dontverify"
+REQUIRES="gst-plugins-base gtk+2 icu libsoup mesalib ruby sqlite which"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i '/generate-gtkdoc --rebase/s:^:# :' GNUmakefile.in
+
+sed -i '/parse-param/ a%lex-param {YYLEX_PARAM}' \
+             Source/ThirdParty/ANGLE/src/compiler/glslang.y
+patch -Np1 -i ../webkitgtk-1.10.2-fix_librt_linking-1.patch
+./configure --prefix=/usr --with-gtk=2.0 --disable-webkit2
+make
+
+make DESTDIR=${FAKEROOT} install
+rm -rf ${FAKEROOT}/usr/share/gtk-doc/html/webkitgtk-1.0
+mv -vi ${FAKEROOT}/usr/share/gtk-doc/html/webkitgtk{,-1.0}
+
+#################
+} # END OF FILE #
+#################
+

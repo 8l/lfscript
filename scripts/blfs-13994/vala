@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnome.org/pub/gnome/sources/vala/0.24/vala-0.24.0.tar.xz
+          http://www.linuxfromscratch.org/patches/blfs/svn/vala-0.24.0-upstream_fixes-2.patch"
+MD5SUMLIST="beddeff9c06d3c278988b237da0e7401
+            30beef4538dc7481e2d5d02b867ce4fb"
+REQUIRES="glib2"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../vala-0.24.0-upstream_fixes-2.patch
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

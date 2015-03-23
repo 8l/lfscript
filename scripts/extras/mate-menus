@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/mate-menus-1.8.0.tar.xz"
+MD5SUMLIST="360bba4f4f2d0f24ebebb2c8517d996a"
+REQUIRES="glib2 gobject-introspection mate-common"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+
+echo "export XDG_CONFIG_DIRS=/etc/mate/1.8/xdg" \
+    > ${FAKEROOT}/etc/profile.d/mate.sh
+
+echo "export XDG_DATA_DIRS=/usr/share:/usr/local/share" \
+    >> ${FAKEROOT}/etc/profile.d/mate.sh
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/gnu/aspell/aspell-0.60.6.1.tar.gz"
+MD5SUMLIST="e66a9c9af6a60dc46134fdacf6ce97d7"
+REQUIRES="which"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/aspell-0.60.6.1/aspell{,-dev}.html
+
+install -v -m644 manual/aspell.html/* \
+    ${FAKEROOT}/usr/share/doc/aspell-0.60.6.1/aspell.html
+
+install -v -m644 manual/aspell-dev.html/* \
+    ${FAKEROOT}/usr/share/doc/aspell-0.60.6.1/aspell-dev.html
+
+install -v -m 755 scripts/ispell ${FAKEROOT}/usr/bin/
+
+install -v -m 755 scripts/spell ${FAKEROOT}/usr/bin/
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+./configure
+make
+
+make install
+
+#################
+} # END OF FILE #
+#################
+

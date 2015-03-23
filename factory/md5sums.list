@@ -1,0 +1,23 @@
+2cf9ba96b2723a5268cd14432b15fdcf  python-2.7.8-docs-html.tar.bz2
+4ce1bf51879a679b55be831f31bf3a2f  libunique-1.1.6-upstream_fixes-1.patch
+6f63c207c43669718838869e12a7813c  nss-3.16.4-standalone-1.patch
+30beef4538dc7481e2d5d02b867ce4fb  vala-0.24.0-upstream_fixes-2.patch
+77b63a06db2db2b692dcb96c2c64dc45  docbook-xsl-doc-1.78.1.tar.bz2
+83d297bd20a11b47a4239b101bc26ad2  parted-3.2-devmapper-1.patch
+179a6c22d0f7d2619cba4eb794fdc1cb  blfs-bootscripts-20140810.tar.bz2
+641f73052d9f54e720efe1a476a20237  libnl-doc-3.2.25.tar.gz
+808f7679574d08b690ec9e4e4ac0a0f7  xf86-video-sis-0.10.7-upstream_fixes-1.patch
+255637c4bee10e6af1a7ad396a435bbc  MesaLib-10.2.6-add_xdemos-1.patch
+334634fda0b0becd453ac2addee01d1f  openssl-1.0.1i-fix_parallel_build-1.patch
+356655aede228a6fccba092e9f8e507e  nasm-2.11.05-xdoc.tar.xz
+7938353e3a3bda85733a165e7ac4bb84  compiler-rt-3.4.src.tar.gz
+87945973b7c73038871c5f849a818588  cfe-3.4.2.src.tar.gz
+ab5fec928cdd65b101e7de63ec8b17bf  xorg-server-1.16.0-add_prime_support-1.patch
+dfc90877875b9ae6d06a379d88a24a03  Python-2.7.8-skip_test_gdb-1.patch
+e6bb1891368757356880b909faabc5cf  xorg-server-1.16.0-upstream_glamor_fix-1.patch
+e65b1a9569d3e3129538942255db0af1  sqlite-doc-3080600.zip
+e192ef88e84ddf10665f34cf418652fb  freetype-doc-2.5.3.tar.bz2
+ef8fbe0c92efd9a60d7f320e211d10b2  xmlts20130923.tar.gz
+f64dde51156e04cd125725bb3e3b66ce  lfs-bootscripts-20140815.tar.bz2
+f959e8b1cb9876ce946a2701e8aca519  libpng-1.6.12-apng.patch.gz
+

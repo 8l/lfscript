@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.xiph.org/releases/ao/libao-1.2.0.tar.gz"
+MD5SUMLIST="9f5dd20d7e95fd0dd72df5353829f097"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m644 README ${FAKEROOT}/usr/share/doc/libao-1.2.0
+
+#################
+} # END OF FILE #
+#################
+

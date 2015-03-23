@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.1.0.tar.xz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="4c34cacea07db3681b0da1befa229ec4
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i -e '/include.*config.h/ i #include <stdarg.h>' lib/defaults.c
+
+./configure --prefix=/         \
+            --without-openldap \
+            --mandir=/usr/share/man
+make
+
+make DESTDIR=${FAKEROOT} install
+
+includeBootscript autofs
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+mv /etc/auto.master /etc/auto.master.bak
+cat > /etc/auto.master << "EOF"
+# Begin /etc/auto.master
+
+/media/auto  /etc/auto.misc  --ghost
+#/home        /etc/auto.home
+
+# End /etc/auto.master
+EOF
+
+#################
+} # END OF FILE #
+#################
+

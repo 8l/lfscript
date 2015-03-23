@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://releases.compiz-fusion.org/0.8.4/compizconfig-python-0.8.4.tar.bz2"
+MD5SUMLIST="dontverify"
+REQUIRES="libcompizconfig python-pyrex"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

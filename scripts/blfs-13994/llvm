@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://llvm.org/releases/3.4.2/llvm-3.4.2.src.tar.gz
+          http://llvm.org/releases/3.4.2/cfe-3.4.2.src.tar.gz
+          http://llvm.org/releases/3.4/compiler-rt-3.4.src.tar.gz"
+MD5SUMLIST="a20669f75967440de949ac3b1bad439c
+            87945973b7c73038871c5f849a818588
+            7938353e3a3bda85733a165e7ac4bb84"
+REQUIRES="libffi python2"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xf ../cfe-3.4.2.src.tar.gz -C tools
+tar -xf ../compiler-rt-3.4.src.tar.gz -C projects
+
+mv tools/cfe-3.4.2.src tools/clang
+mv projects/compiler-rt-3.4 projects/compiler-rt
+
+sed -e 's:/docs/llvm:/share/doc/llvm-3.4.2:' \
+    -i Makefile.config.in
+
+CC=gcc CXX=g++                         \
+./configure --prefix=/usr              \
+            --sysconfdir=/etc          \
+            --enable-libffi            \
+            --enable-optimized         \
+            --enable-shared            \
+            --disable-assertions
+make
+
+# (*) Suppress the building of documentation which requires additional software to be installed
+#make -C docs -f Makefile.sphinx man
+
+make DESTDIR=${FAKEROOT} install
+
+for file in ${FAKEROOT}/usr/lib/lib{clang,LLVM,LTO}*.a
+do
+  test -f $file && chmod -v 644 $file
+done
+
+install -v -dm755 ${FAKEROOT}/usr/lib/clang-analyzer
+for prog in scan-build scan-view
+do
+  cp -rfv tools/clang/tools/$prog ${FAKEROOT}/usr/lib/clang-analyzer/
+  ln -sfv ../lib/clang-analyzer/$prog/$prog ${FAKEROOT}/usr/bin/
+done
+ln -sfv ${FAKEROOT}/usr/bin/clang ${FAKEROOT}/usr/lib/clang-analyzer/scan-build/
+mv -v ${FAKEROOT}/usr/lib/clang-analyzer/scan-build/scan-build.1 ${FAKEROOT}/usr/share/man/man1/
+
+# (*) Suppress the building of documentation which requires additional software to be installed
+#install -v -m644 docs/_build/man/* ${FAKEROOT}/usr/share/man/man1/
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.kernel.org/pub/linux/utils/usb/usbutils/usbutils-007.tar.xz"
+MD5SUMLIST="c9df5107ae9d26b10a1736a261250139"
+REQUIRES="libusb wget which"
+POSTINST="true"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr  \
+            --disable-zlib \
+            --datadir=/usr/share/misc
+make
+
+make DESTDIR=${FAKEROOT} install
+mv -v ${FAKEROOT}/usr/sbin/update-usbids.sh ${FAKEROOT}/usr/sbin/update-usbids
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+# (*) Get a current version of the usb.ids data file.
+update-usbids
+
+#################
+} # END OF FILE #
+#################
+

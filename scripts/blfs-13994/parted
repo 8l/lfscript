@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/gnu/parted/parted-3.2.tar.xz
+          http://www.linuxfromscratch.org/patches/blfs/svn/parted-3.2-devmapper-1.patch"
+MD5SUMLIST="0247b6a7b314f8edeb618159fa95f9cb
+            83d297bd20a11b47a4239b101bc26ad2"
+REQUIRES="lvm2"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../parted-3.2-devmapper-1.patch
+
+./configure --prefix=/usr --disable-static
+make
+
+make -C doc html
+makeinfo --html      -o doc/html       doc/parted.texi
+makeinfo --plaintext -o doc/parted.txt doc/parted.texi
+
+# (*) Suppress the building of documentation which requires additional software to be installed
+#texi2pdf             -o doc/parted.pdf doc/parted.texi
+#texi2dvi             -o doc/parted.dvi doc/parted.texi
+#dvips                -o doc/parted.ps  doc/parted.dvi
+
+sed -i '/t0251-gpt-unicode.sh/d' tests/Makefile
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/parted-3.2/html
+install -v -m644    doc/html/* \
+                    ${FAKEROOT}/usr/share/doc/parted-3.2/html
+install -v -m644    doc/{FAT,API,parted.{txt,html}} \
+                    ${FAKEROOT}/usr/share/doc/parted-3.2
+
+# (*) Suppress the building of documentation which requires additional software to be installed
+#install -v -m644 doc/FAT doc/API doc/parted.{pdf,ps,dvi} \
+#                    ${FAKEROOT}/usr/share/doc/parted-3.2
+
+#################
+} # END OF FILE #
+#################
+

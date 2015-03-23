@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-2.4.39.tgz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/openldap-2.4.39-blfs_paths-1.patch
+          http://www.linuxfromscratch.org/patches/blfs/svn/openldap-2.4.39-symbol_versions-1.patch"
+MD5SUMLIST="b0d5ee4b252c841dec6b332d679cf943
+            179a6c22d0f7d2619cba4eb794fdc1cb
+            dontverify
+            dontverify"
+REQUIRES="db"
+TAGS="preinst"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../openldap-2.4.39-blfs_paths-1.patch
+patch -Np1 -i ../openldap-2.4.39-symbol_versions-1.patch
+autoconf
+./configure --prefix=/usr     \
+            --sysconfdir=/etc \
+            --disable-static  \
+            --enable-dynamic  \
+            --disable-debug   \
+            --disable-slapd
+make depend
+make
+
+make DESTDIR=${FAKEROOT} install
+
+patch -Np1 -i ../openldap-2.4.39-blfs_paths-1.patch
+patch -Np1 -i ../openldap-2.4.39-symbol_versions-1.patch
+autoconf
+./configure --prefix=/usr         \
+            --sysconfdir=/etc     \
+            --localstatedir=/var  \
+            --libexecdir=/usr/lib \
+            --disable-static      \
+            --disable-debug       \
+            --enable-dynamic      \
+            --enable-crypt        \
+            --enable-spasswd      \
+            --enable-modules      \
+            --enable-rlookups     \
+            --enable-backends=mod \
+            --enable-overlays=mod \
+            --disable-ndb         \
+            --disable-sql
+make depend
+make
+
+make DESTDIR=${FAKEROOT} install
+
+chmod -v 700 ${FAKEROOT}/var/lib/openldap
+chown -v -R root:ldap ${FAKEROOT}/var/lib/openldap
+chmod -v 640 ${FAKEROOT}/etc/openldap/{slapd.{conf,ldif},DB_CONFIG.example}
+chown -v root:ldap ${FAKEROOT}/etc/openldap/{slapd.{conf,ldif},DB_CONFIG.example}
+install -v -dm700 -o ldap -g ldap ${FAKEROOT}/etc/openldap/slapd.d
+
+install -v -dm755  ${FAKEROOT}/usr/share/doc/openldap-2.4.39
+cp -vfr doc/drafts ${FAKEROOT}/usr/share/doc/openldap-2.4.39
+cp -vfr doc/rfc    ${FAKEROOT}/usr/share/doc/openldap-2.4.39
+cp -vfr doc/guide  ${FAKEROOT}/usr/share/doc/openldap-2.4.39
+
+includeBootscript slapd
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 83 ldap
+useradd -c "OpenLDAP Daemon Owner" -d /var/lib/openldap -u 83 \
+        -g ldap -s /bin/false ldap
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+/etc/rc.d/init.d/slapd start
+
+ldapsearch -x -b '' -s base '(objectclass=*)' namingContexts
+
+#################
+} # END OF FILE #
+#################
+

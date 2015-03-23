@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://tuxera.com/opensource/ntfs-3g_ntfsprogs-2014.2.15.tgz"
+MD5SUMLIST="f11d563816249d730a00498983485f3a"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+ln -sv ../bin/ntfs-3g ${FAKEROOT}/sbin/mount.ntfs
+ln -sv ${FAKEROOT}/usr/share/man/man8/{ntfs-3g,mount.ntfs}.8
+
+chmod -v 4755 ${FAKEROOT}/sbin/mount.ntfs
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+chmod -v 777 /mnt/usb
+
+#################
+} # END OF FILE #
+#################
+

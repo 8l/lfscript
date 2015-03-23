@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/mate-icon-theme-1.8.0.tar.xz"
+MD5SUMLIST="04d3bdcbf20195436ba25b6c70b144aa"
+REQUIRES="icon-naming-utils mate-common"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./autogen.sh --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

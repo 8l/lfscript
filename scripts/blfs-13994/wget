@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/gnu/wget/wget-1.15.tar.xz"
+MD5SUMLIST="7a279d5ac5594919124d5526e7143e28"
+REQUIRES="openssl"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr      \
+            --sysconfdir=/etc  \
+            --with-ssl=openssl
+make
+
+make DESTDIR=${FAKEROOT} install
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+echo ca-directory=/etc/ssl/certs >> /etc/wgetrc
+
+#################
+} # END OF FILE #
+#################
+

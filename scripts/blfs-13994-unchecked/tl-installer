@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
+MD5SUMLIST="f5b1e909d5c2380cefd2cda83d288c00"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xf install-tl-unx.tar.gz
+cd install-tl-<CCYYMMDD> 
+
+TEXLIVE_INSTALL_PREFIX=/opt/texlive ./install-tl
+
+cat >> /etc/profile.d/extrapaths.sh << "EOF"
+pathappend /usr/share/man                        MANPATH
+pathappend /opt/texlive/2014/texmf-dist/doc/man  MANPATH
+pathappend /usr/share/info                       INFOPATH
+pathappend /opt/texlive/2014/texmf-dist/doc/info INFOPATH
+pathappend /opt/texlive/2014/bin/<ARCH>-linux
+EOF
+
+#################
+} # END OF FILE #
+#################
+

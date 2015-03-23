@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://download.savannah.gnu.org/releases/acl/acl-2.2.52.src.tar.gz"
+MD5SUMLIST="a61415312426e9c2212bd7dc7929abda"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i -e 's|/@pkg_name@|&-@pkg_version@|' include/builddefs.in
+
+sed -i "s:| sed.*::g" test/{sbits-restore,cp,misc}.test
+
+sed -i -e "/TABS-1;/a if (x > (TABS-1)) x = (TABS-1);" \
+    libacl/__acl_to_any_text.c
+
+./configure --prefix=/usr \
+            --bindir=/bin \
+            --libexecdir=/usr/lib
+
+make
+
+make prefix=${FAKEROOT}/usr install install-dev install-lib
+chmod -v 755 ${FAKEROOT}/usr/lib/libacl.so
+
+mv -v ${FAKEROOT}/usr/lib/libacl.so.* ${FAKEROOT}/lib
+ln -sfv ../../lib/$(readlink ${FAKEROOT}/usr/lib/libacl.so) ${FAKEROOT}/usr/lib/libacl.so
+
+#################
+} # END OF FILE #
+#################
+

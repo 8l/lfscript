@@ -1,0 +1,152 @@
+{
+    /**
+     * Dependency modifications.
+     */
+    "dependencies": {
+
+        /**
+         * These are required to build the software when using the instructions
+         * from BLFS. If these are not installed, the software will fail to
+         * build, or the buildscript will produce errors at some stage.
+         */
+        "required": {
+            "cmake":           /* 2014-07-18 */ [ "curl", "libarchive" ],
+            "ffmpeg":          /* 2014-08-05 */ [ "yasm", "libass", "fdk-aac", "lame", "libtheora", "libvorbis", "libvpx", "x264", "x7lib" ],
+            "garcon":          /* 2014-07-27 */ [ "libxfce4ui" ],
+            "gconf":           /*  RECHECK   */ [ "dbus-glib", "gtk+2" ],
+            "gedit":           /* 2014-08-05 */ [ "enchant", "iso-codes" ],
+            "glib2":           /*  RECHECK   */ [ "pcre" ],
+            "gnome-doc-utils": /*  RECHECK   */ [ "rarian" ],
+            "gtksourceview":   /* 2014-08-05 */ [ "libxml2" ],
+            "harfbuzz":        /* 2014-07-27 */ [ "glib2" ],
+            "libass":          /* 2014-08-05 */ [ "fontconfig" ],
+            "librsvg":         /* 2014-07-29 */ [ "vala" ],
+            "libsecret":       /* 2014-08-05 */ [ "libxslt", "libgcrypt", "docbook-xsl" ],
+            "libvdpau-va-gl":  /* 2014-08-05 */ [ "glib2" ],
+            "libxklavier":     /* 2014-07-29 */ [ "libXdmcp" ],
+            "llvm":            /* 2014-06-27 */ [ "python2", "libffi" ],
+            "mesalib":         /* 2014-06-27 */ [ "llvm", "elfutils" ],
+            "networkmanager":  /* 2014-07-06 */ [ "iptables", "newt" ],
+            "openbox":         /* 2014-08-08 */ [ "libxml2" ],
+            "parted":          /* 2014-08-05 */ [ "lvm2" ],
+            "rarian":          /*  RECHECK   */ [ "docbook" ],
+            "sqlite":          /*  RECHECK   */ [ "unzip" ],
+            "talloc":          /*  RECHECK   */ [ "python" ],
+            "upower":          /*  RECHECK   */ [ "libusb" ],
+            "pciutils":        /*  RECHECK   */ [ "wget", "which" ],
+            "usbutils":        /*  RECHECK   */ [ "wget", "which" ],
+            "wget":            /*  RECHECK   */ [ "openssl" ],
+            "wpa_supplicant":  /*  RECHECK   */ [ "openssl", "dbus", "libnl" ],
+            "x264":            /* 2014-08-05 */ [ "yasm" ],
+            "xfce4-settings":  /* 2014-07-27 */ [ "garcon" ],
+            "xorg-server":     /* 2014-09-05 */ [ "libepoxy" ],
+        },
+
+        /**
+         * The dependencies listed here are highly recommended. If they are not
+         * installed, one of the following will be true:
+         *
+         * 1) Some software that depends on a listed package, will fail to
+         *    compile without errors.
+         *
+         * 2) The software requires it at runtime.
+         *
+         * 3) Without it, the software does not work properly or lacks
+         *    significant functionality.
+         */
+        "recommended": {
+               "atk":            { /*  RECHECK   */ "gobject-introspection": "it avoids compilation order problems when building Gnome"
+            }, "cairo":          { /* 2014-07-27 */ "xorg":                  "it is required to build GTK+2"
+            }, "consolekit":     { /*  RECHECK   */ "polkit":                "it avoids security problems"
+            }, "gdk-pixbuf":     { /*  RECHECK   */ "gobject-introspection": "it avoids compilation order problems when building Gnome",
+                                   /*  RECHECK   */ "xorg":                  "many GTK+ applications require gdk-pixbuf-xlib"
+            }, "gnutls":         { /*  RECHECK   */ "libtasn1":              "it will otherwise install it's own outdated version"
+            }, "harfbuzz":       { /* 2014-07-27 */ "freetype2":             "it is required to build Pango"
+            }, "libcanberra":    { /* 2014-07-29 */ "gtk+2":                 "it enables libcanberra-gtk, which is required by 'Marco'"
+            }, "libdrm":         { /* 2014-06-22 */ "x7lib":                 "it enables Intel KMS API support required by Mesa (and Mesa requires x7lib anyway)"
+            }, "libgnome":       { /*  RECHECK   */ "esound":                "it is recommended for Gnome"
+            }, "libxml2":        { /* 2014-06-22 */ "python2":               "it is required to build Mesa (and therefore Xorg)"
+            }, "networkmanager": { /* 2014-07-06 */ "dhcpcd":                "it is required for DHCP functionality",
+                                   /* 2014-08-05 */ "gobject-introspection": "it is required to build network-manager-applet"
+            }, "pango":          { /*  RECHECK   */ "gobject-introspection": "it avoids compilation order problems when building Gnome"
+            }, "polkit":         { /* 2014-07-29 */ "gobject-introspection": "it is required to build Gnome/MATE"
+            },
+        },
+
+        /**
+         * The dependencies listed here are not required but are listed in BLFS
+         * anyway.
+         */
+        "blacklisted": {
+            "libjpeg-turbo":          /*  RECHECK   */ [ "yasm" ],
+            "libnotify":              /*  RECHECK   */ [ "notification-daemon", "xfce4-notifyd" ],
+            "libvdpau":               /*  RECHECK   */ [ "ffmpeg", "glu", "libva" ],
+            "libvpx":                 /*  RECHECK   */ [ "nasm" ],
+            "network-manager-applet": /*  RECHECK   */ [ "lxpolkit", "polkit-gnome" ],
+            "networkmanager":         /*  RECHECK   */ [ "gnutls" ],
+            "xcb-proto":              /*  RECHECK   */ [ "python3" ],
+            "xorg-server":            /*  RECHECK   */ [ "libgcrypt", "nettle" ],
+        },
+    },
+
+    /**
+     * Instructions that have the listed phrases in them will be commented out
+     * of their respective scripts.
+     * Commands are commented out for one of the following reasons:
+     *
+     * 1) They only run supplemental tests; Some test-suites will always exit
+     *    with errors which LFScript will interpret as compilation failures.
+     *    To avoid these issues, don't run test suites.
+     *
+     * 2) They build supplemental documentation which requires the presence of
+     *    additional software. In stead of adding Doxygen and Tex as a
+     *    dependency to every script that can build extra documentation (which
+     *    makes the building of a system unneccessarily complex and bloated) we
+     *    simply don't build the extra documentation and save space.
+     *    Documentation is available on the internet anyway...
+     *
+     * 3) It contains only a configuration example, sometimes with placeholders.
+     *
+     * 4) It requires software that is not a direct dependency to be installed,
+     *    and the commands are not required to build a properly working copy of
+     *    the software.
+     *
+     * 5) It is superfluous. For example 'ldconfig' is executed by LFScript
+     *    after the installation of each package, regardless of it's presence
+     *    in a script.
+     */
+    "blacklistedCommands": {
+           "*":              { "make check":               "Don't run test suites."
+        }, "alsa-lib":       { "make doc":                 "Suppress the building of documentation which requires additional software to be installed",
+                               "/usr/share/doc":           "Suppress the building of documentation which requires additional software to be installed"
+        }, "dbus":           { "enable-tests":             "Don't run test suites",
+                               "name-test":                "Don't run test suites",
+                               "groupadd":                 "User and group were already created in LFS",
+                               "D-Bus session daemon":     "Example configuration"
+        }, "dhcpcd":         { "192.168.0.10":             "Example configuration"
+        }, "docbook-xsl":    { "xsl/<version>":            "Example configuration"
+        }, "ffmpeg":         { "html":                     "Suppress the building of documentation which requires additional software to be installed",
+                               "fate":                     "Don't run test suites" 
+        }, "fluxbox":        { "fluxbox-generate_menu":    "Example configuration",
+                               "<theme>":                  "Example configuration"
+        }, "gtk+2":          { "gtkrc":                    "Example configuration"
+        }, "gtk+3":          { "~/.config":                "Example configuration"
+        }, "libgcrypt":      { "html":                     "Suppress the building of documentation which requires additional software to be installed"
+        }, "libisoburn":     { "doxygen":                  "Suppress the building of documentation which requires additional software to be installed",
+                               "/usr/share/doc":           "Suppress the building of documentation which requires additional software to be installed"
+        }, "libusb":         { "doc":                      "Suppress the building of documentation which requires additional software to be installed"
+        }, "llvm":           { " docs": /* with space */   "Suppress the building of documentation which requires additional software to be installed", 
+        }, "openbox":        { "exec openbox":             "Example configuration",
+                               "ls -d ":                   "Configuration information"
+        }, "pango":          { "ModulesPath":              "Configuration information"
+        }, "parted":         { "dvi":                      "Suppress the building of documentation which requires additional software to be installed"
+        }, "polkit":         { "pam.d":                    "Not required because PAM is not installed"
+        }, "popt":           { "doxygen":                  "Suppress the building of documentation which requires additional software to be installed"
+        }, "wpa_supplicant": { "/etc/sysconfig/ifconfig.": "Example configuration",
+                               "wpa_gui-qt4":              "Not required because QT4 is not installed",
+                               "wifi0":                    "Example configuration",
+                               "update-desktop-database":  "Will be executed by desktop-file-utils, if it is installed"
+        },
+    },
+}
+

@@ -1,0 +1,4 @@
+# (*) Get around the problem that some applications cannot properly discover
+#     where the libglade interface library has been installed.
+echo "export LIBGLADE_MODULE_PATH=${GNOME_PREFIX}/lib/libglade/2.0" \
+        > /etc/profile.d/libgnomeui.sh

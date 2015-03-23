@@ -1,0 +1,1667 @@
+
+<!-- LFScript.org Package Dump (2014-09-05 20:16:59 UTC) -->
+
+<lfscriptPackages>
+<package>
+[[Category:Scripts]]
+<scriptname>btrfs-progs</scriptname>
+
+== Sources ==
+* <sourcecode>http://lfscript.org/sources/btrfs-progs_20140613.tar.xz</sourcecode>
+
+<md5>b48fe5f7855a05f8d670f543171b9629  btrfs-progs_20140613.tar.xz</md5>
+
+You can build a source package from the latest version by running the following commands from within the lfscript directory:
+
+<pre>mkdir btrfs-distrib
+cd btrfs-distrib
+
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/mason/btrfs-progs.git
+tar --xz -cf btrfs-progs_$(date +%Y%m%d).tar.xz btrfs-progs
+
+md5sum btrfs-progs_$(date +%Y%m%d).tar.xz
+
+mv -v btrfs-progs_$(date +%Y%m%d).tar.xz ../sources
+
+cd ../
+rm -rf btrfs-distrib
+</pre>
+
+Then move the source archive to the sources directory of LFScript and edit the <code>btrfs-progs</code> script to point to the new source archive. Don't forget to also adjust the md5 checksum in the script.
+
+== Dependencies ==
+* <dependency>lzo</dependency>
+
+The following packages are required to build the documentation. <code>asciidoc</code> requires <code>python2</code>. And <code>xmlto</code> requires about 5 more packages to deal with XML. If you want to build a light system, you may want to find a way to not build the docs. However, if you are going to build a desktop system, the XML dependencies will probably also be required for other packages.
+* <dependency>asciidoc</dependency>
+* <dependency>xmlto</dependency>
+
+
+If you want to be able to mount <code>btrfs</code> file systems, you will need to add support for it to your kernel:
+
+<pre>File systems --->
+  Btrfs filesystem (EXPERIMENTAL) Unstable disk format</pre>
+
+== Installation ==
+<build>make</build>
+
+<build user="root">make prefix=/usr install</build>
+</package>
+<package>
+[[Category:Scripts]]
+[[AsciiDoc]] is a text document format for writing notes, documentation, articles, books, ebooks, slideshows, web pages, man pages and blogs. AsciiDoc files can be translated to many formats including HTML, PDF, EPUB, man page.
+
+It is required for building the documentation for [[BtrFS Progs]].
+
+<scriptname>asciidoc</scriptname>
+
+== Sources ==
+* <sourcecode>http://downloads.sourceforge.net/project/asciidoc/asciidoc/8.6.9/asciidoc-8.6.9.tar.gz</sourcecode>
+
+<md5>c59018f105be8d022714b826b0be130a  asciidoc-8.6.9.tar.gz</md5>
+
+== Dependencies ==
+* <dependency>python2</dependency>
+
+== Installation ==
+<build>./configure --prefix=/usr</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+[[SquashFS Tools]] provides the <code>mksquashfs</code> utility, which allows one to create a compressed read-only file system.
+
+<scriptname>squashfs-tools</scriptname>
+
+== Sources ==
+* <sourcecode>http://kent.dl.sourceforge.net/sourceforge/squashfs/squashfs4.2.tar.gz</sourcecode>
+
+<md5>1b7a781fb4cf8938842279bd3e8ee852  squashfs4.2.tar.gz</md5>
+
+== Dependencies ==
+This package has no dependencies outside of LFS. However, if you want to be able to mount <code>squashfs</code> file systems, you will need to add support for it to your kernel:
+
+<pre>File systems --->
+  Miscellaneous filesystems --->
+    SquashFS 4.0 - Squashed file system support --->
+      Include support for ZLIB compressed file systems
+      Include support for LZO compressed file systems
+      Include support for XZ compressed file systems</pre>
+
+== Installation ==
+<build>pushd squashfs-tools</build>
+
+<build>sed "s/#XZ_SUPPORT/XZ_SUPPORT/" -i Makefile
+make</build>
+
+<build user="root">make INSTALL_DIR=/usr/bin install</build>
+
+<build>popd</build>
+
+== Packaging note ==
+<destdir>INSTALL_DIR</destdir>
+</package>
+<package>
+[[Category:Scripts]]
+This page defines one of the core features of LFScript; The ability to create a [[Live CD]].
+
+This page is set up in way so that it can be imported into LFScript automatically, just like the pages for the other [[Extra packages]] are. Al though you should be able to run these commands yourself, it is intended for them to be [[Creating a Live CD|executed by LFScript]].
+
+<scriptname>buildiso</scriptname>
+
+== Sources ==
+* <sourcecode>rootfs-$(uname -m).img</sourcecode>
+
+'''Note:''' You obviously can not download this file, it [[Creating a Live CD|can only be created by you]].
+
+== Dependencies ==
+* <dependency value="buildiso-dep"></dependency>[[BuildISO Dependencies]]
+
+== Installation ==
+
+=== isolinux.cfg ===
+This creates a default configuration file for the [[Syslinux|isolinux]] boot loader. If you have created a [[BuildISO Customisation|custom configuration]], this file file be ignored:
+
+<build>cat > isolinux.cfg << EOF
+DEFAULT menu.c32
+PROMPT 0
+MENU TITLE Select an option...
+TIMEOUT 300
+
+LABEL live
+    MENU LABEL ^Boot the live system ($(uname -m))
+    MENU DEFAULT
+    KERNEL /boot/$(uname -m)/vmlinuz
+    APPEND initrd=/boot/$(uname -m)/initram.fs quiet
+
+LABEL harddisk
+    MENU LABEL Boot from first ^Hard disk
+    LOCALBOOT 0x80
+
+EOF</build>
+
+=== Init script ===
+This creates the core initialisation script for the Live CD. It is this script that runs immediately after the Linux kernel has been loaded by the boot loader. It is responsible for locating and mounting the CD medium, mounting the root file system image and then give control to the Operating System inside that image:
+
+<build>cat > init.sh << "EndOfFile"
+#!/bin/busybox sh
+
+# Initramfs boot script 1.3.3 (2014-06-14)
+# Copyright (c) 2010-2014   Marcel van den Boer
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+
+# FS layout at the start of this script:
+# - /boot/id_label
+# - /bin/busybox
+# - /dev/console (created by kernel)
+# - /init (this file)
+
+set -e
+
+ARCH="<ARCH>"
+
+###########################################
+copyBindMount() { # COPY/BIND LIVECD MODE #
+###########################################
+
+# This function bind-mounts directories which are designed to be capable of
+# read-only access and copies the remaining directories to a tmpfs.
+#
+# The downside of this method is that the resulting root filesystem is not
+# fully writable. So, for example, installation of new programs will not be
+# possible.
+#
+# However, this function can be used without any modification to the kernel and
+# is therefore perfect for use as a fallback if other options are not available.
+
+# Mount a tmpfs where the new rootfs will be.
+mount -t tmpfs tmpfs ${ROOT} # Allows remounting root in the bootscripts
+
+# Bind mount read-only filesystems, copy the rest
+cd /mnt/system
+for dir in $(ls -1); do
+    case ${dir} in
+        lost+found)
+            ;;
+        bin | boot | lib | opt | sbin | usr)
+            mkdir ${ROOT}/${dir}
+            mount --bind ${dir} ${ROOT}/${dir}
+            ;;
+        *)
+            cp -R ${dir} ${ROOT}
+            ;;
+    esac
+done
+cd /
+
+#########################################
+}; unionMount() { # UNIONFS LIVECD MODE #
+#########################################
+
+# A union mount takes one or more directories and combines them transparantly
+# in a third. This function creates a writable directory in memory (tmpfs) and
+# uses it to overlay the read-only system image, resulting in a fully writable
+# root file system.
+#
+# The only downside to this method is that it requires a union type filesystem
+# in the kernel, which can only be accomplished by patching the kernel as there
+# is no such feature in a vanilla kernel.
+
+mkdir -p /mnt/writable
+mount -t tmpfs -o rw tmpfs /mnt/writable
+
+UNIONFSOPT="/mnt/writable=rw:/mnt/system=ro"
+mount -t unionfs -o dirs=${UNIONFSOPT} unionfs ${ROOT} 2> /dev/null || {
+
+    # If UnionFS fails, fall back to copy/bind mounting
+    copyBindMount
+}
+
+######################
+} # END OF FUNCTIONS #
+######################
+
+# Make required applets easier to access
+for applet in cat chmod cp cut grep ls mkdir mknod mount umount switch_root; do
+    /bin/busybox ln /bin/busybox /bin/${applet}
+done
+
+# Clear the screen
+#clear # Don't! This will clear the Linux boot logo when using a framebuffer.
+       # If you want to clear the screen on boot add the "clear" command to
+       # '/usr/share/live/sec_init.sh' in the system image.
+
+# Create device nodes required to run this script
+# Note: /dev/console will already be available in the ramfs
+mknod /dev/null c  1  3
+
+mknod /dev/scd0 b 11  0  # +--------
+mknod /dev/scd1 b 11  1  # |
+mknod /dev/scd2 b 11  2  # |
+mknod /dev/scd3 b 11  3  # |
+                         # |
+mknod /dev/sda  b  8  0  # |
+mknod /dev/sda1 b  8  1  # |
+mknod /dev/sda2 b  8  2  # |
+mknod /dev/sda3 b  8  3  # |
+mknod /dev/sda4 b  8  4  # |
+                         # |
+mknod /dev/sdb  b  8 16  # |    <----
+mknod /dev/sdb1 b  8 17  # |        Devices which could be or contain the
+mknod /dev/sdb2 b  8 18  # |        boot medium...
+mknod /dev/sdb3 b  8 19  # |
+mknod /dev/sdb4 b  8 20  # |
+                         # |
+mknod /dev/sdc  b  8 32  # |
+mknod /dev/sdc1 b  8 33  # |
+mknod /dev/sdc2 b  8 34  # |
+mknod /dev/sdc3 b  8 35  # |
+mknod /dev/sdc4 b  8 36  # |
+                         # |
+mknod /dev/sdd  b  8 48  # |
+mknod /dev/sdd1 b  8 49  # |
+mknod /dev/sdd2 b  8 50  # |
+mknod /dev/sdd3 b  8 51  # |
+mknod /dev/sdd4 b  8 52  # +--------
+
+# Create mount points for filesystems
+mkdir -p /mnt/medium
+mkdir -p /mnt/system
+mkdir -p /mnt/rootfs
+
+# Mount the /proc filesystem (enables filesystem detection for 'mount')
+mkdir /proc
+mount -t proc proc /proc
+
+# Search for, and mount the boot medium
+LABEL="$(cat /boot/id_label)"
+for device in $(ls /dev); do
+    [ "${device}" == "console" ] && continue
+    [ "${device}" == "null"    ] && continue
+
+    mount -o ro /dev/${device} /mnt/medium 2> /dev/null && \
+    if [ "$(cat /mnt/medium/boot/${ARCH}/id_label)" != "${LABEL}" ]; then
+        umount /mnt/medium
+    else
+        DEVICE="${device}"
+        break
+    fi
+done
+
+if [ "${DEVICE}" == "" ]; then
+    echo "STOP: Boot medium not found."
+    exec /bin/busybox sh
+fi
+
+# Mount the system image
+mount -t squashfs -o ro,loop /mnt/medium/boot/${ARCH}/root.sfs /mnt/system || {
+    if [ -r /mnt/medium/boot/${ARCH}/root.sfs ]; then
+        echo "STOP: Unable to mount system image. The kernel probably lacks"
+        echo "      SquashFS support. You may need to recompile it."
+    else
+        echo "STOP: Unable to mount system image. It seems to be missing."
+    fi
+
+    exec /bin/busybox sh
+}
+
+# Define where the new root filesystem will be
+ROOT="/mnt/rootfs" # Also needed for /usr/share/live/sec_init.sh
+
+# Select LiveCD mode
+unionMount # Might fall back to copyBindMount
+
+# Move current mounts to directories accessible in the new root
+cd /mnt
+for dir in $(ls -1); do
+    if [ "${dir}" != "rootfs" ]; then
+        mkdir -p ${ROOT}/mnt/.boot/${dir}
+        mount --move /mnt/${dir} ${ROOT}/mnt/.boot/${dir}
+    fi
+done
+cd /
+
+# If the boot medium is a CD, eject it on shutdown
+[ "$(mount | grep iso9660)" != "" ] && \
+cat > ${ROOT}/etc/rc.d/rc0.d/S98eject << EOF
+#!/bin/sh
+
+if [ -x /usr/bin/cdrecord ]; then
+    /usr/bin/cdrecord -eject dev=/dev/${DEVICE} &> /dev/null
+
+    echo -e "\033[31m"
+    echo -en "Remove the boot medium, close the tray (if any), "
+    echo -en "then press ENTER to power off."
+    echo -e "\033[0m"
+
+    read
+fi
+EOF
+chmod +x ${ROOT}/etc/rc.d/rc0.d/S98eject
+
+# Run secondary initialization (if the system provides it)
+if [ -x ${ROOT}/usr/share/live/sec_init.sh ]; then
+    . ${ROOT}/usr/share/live/sec_init.sh
+fi
+
+# Clean up
+umount /proc
+
+# Switch to the new root and launch INIT!
+exec switch_root -c /dev/console ${ROOT} /sbin/init
+
+EndOfFile</build>
+
+=== Identifying the boot medium ===
+The initialisation script must have some way of identifying the medium from which it has been started.
+
+The following command saves a 512-bit random number, to be used as a unique identifier. It will later be copied to the <code>initramfs</code> created after this and to the ISO file system itself:
+<build>dd if=/dev/random of=id_label bs=1 count=64</build>
+
+=== The initramfs ===
+The initialisation script relies on certain system commands to be available during boot. However, because the root file system is not available yet (the very purpose of <code>init.sh</code> is to set it up), these commands must be available in advance.
+
+Luckily, Linux supports the use of an initial RAM disk or <code>initramfs</code>. With this, we can provide the kernel with a file which has a minimal set of utilities (and <code>init.sh</code>) embedded. The kernel will automatically copy the contents of the file to a temporary root filesystem, and then turn over control to <code>/init</code> (<code>init.sh</code>).
+
+In stead of copying the required utilities from the system image, many Live CD's opt to use a statically linked [[BusyBox]] in stead. This makes the <code>initramfs</code> not dependent on any libraries in the system image. And because <code>busybox</code> is only a single binary file, it makes the creation of the initial file system easy:
+
+<build>mkdir -pv mnt_init/{bin,boot}
+cp -v id_label mnt_init/boot
+cp -v /bin/busybox mnt_init/bin
+mv init.sh mnt_init/init
+sed -i "s/<ARCH>/$(uname -m)/g" mnt_init/init
+chmod +x mnt_init/init</build>
+
+Once populated, compress the initial file system. The Linux kernel expects an <code>cpio</code> file, optionally compressed with <code>gzip</code>:
+<build>pushd mnt_init
+find . | /bin/busybox cpio -o -H newc -F ../initramfs.cpio
+popd
+gzip -9 initramfs.cpio
+rm -rf mnt_init</build>
+
+=== Mount, verify and compress the system image ===
+In order to compress the system image, it must be mounted (read-only) first:
+
+<build>mkdir mnt
+mount -o loop,ro rootfs-$(uname -m).img mnt</build>
+
+This next block performs some verification on the system image to ensure it can be used as a root file system. If you are executing the commands on this page manually, you should skip this block:
+<build>FAIL="0"
+
+if [ ! -r mnt/usr/bin/$(uname -m)-*linux-gnu-gcc ]; then
+    echo -n "ERROR: Unable to verify image architecture; Your system image does"
+    echo " not contain the file '/usr/bin/$(uname -m)-*linux-gnu-gcc'"
+    FAIL="1"
+fi
+
+if [ ! -d mnt/etc ]; then
+    echo "ERROR: Your system image does not contain the directory '/etc'"
+    FAIL="1"
+fi
+
+if [ ! -x mnt/sbin/init ]; then
+    echo "ERROR: Your system image does not contain the executable '/sbin/init'"
+    FAIL="1"
+fi
+
+if [ ! -e mnt/dev/console ]; then
+    echo "ERROR: Your system image does not contain the device '/dev/console'"
+    FAIL="1"
+fi
+
+if [ "${FAIL}" == "1" ]; then
+    return 1
+fi</build>
+
+Then, proceed to compress the system image:
+<build>mksquashfs mnt root.sfs -comp xz</build>
+
+=== Create the ISO image ===
+Now that all components are ready, it's time to package it all up in a single ISO file.
+
+First, copy the boot loader and Linux kernel to the CD file system:
+<build>mkdir -p live/boot/{isolinux,$(uname -m)}
+cp -v /usr/share/syslinux/isolinux.bin live/boot/isolinux
+
+# Prefer kernels marked 'live'
+if [ -e mnt/boot/vmlinuz-*-live ]; then
+    cp -v mnt/boot/vmlinuz-*-live live/boot/$(uname -m)/vmlinuz
+    cp -v mnt/boot/config-*-live  live/boot/$(uname -m)/config
+else
+    cp -v mnt/boot/vmlinuz-*      live/boot/$(uname -m)/vmlinuz
+    cp -v mnt/boot/config-*       live/boot/$(uname -m)/config
+fi</build>
+
+Copy all files from the root file system image that have been prepared to [[BuildISO Customisation|customize the Live CD]]:
+<build>if [ -e "mnt/usr/share/live/medium" ]; then
+    cp -vR mnt/usr/share/live/medium/* live
+fi</build>
+
+Now, unmount the root file system image as it is no longer needed:
+<build>umount mnt
+rm -rf mnt</build>
+
+Unless a customised configuration has been copied a moment ago, use the boot loader configuration created when we started:
+<build>if [ ! -e "live/boot/isolinux/isolinux.cfg" ]; then
+    cp -v /usr/share/syslinux/menu.c32 live/boot/isolinux
+    mv -v isolinux.cfg                 live/boot/isolinux
+else
+    rm -rf isolinux.cfg
+fi</build>
+
+Move the various components to the CD file system:
+<build>mv -v root.sfs live/boot/$(uname -m)
+mv -v id_label live/boot/$(uname -m)
+mv -v initramfs.cpio.gz live/boot/$(uname -m)/initram.fs</build>
+
+Write out the final ISO:
+<build>xorrisofs -o system-$(uname -m).iso     \
+          -b boot/isolinux/isolinux.bin \
+          -c boot.cat                   \
+          -no-emul-boot                 \
+          -boot-load-size 4             \
+          -boot-info-table              \
+          -joliet -l -R                 \
+          live
+rm -rf live</build>
+
+Move the ISO image to LFScript's <code>newpackages</code> directory (you can skip this if you are running these commands manually):
+<build>mkdir -p /sources/buildmgr/newpackages
+mv -v system-$(uname -m).iso /sources/buildmgr/newpackages</build>
+
+Done!
+</package>
+<package>
+[[Category:Scripts]]
+This [[Package Group]] contains all dependencies for the [[BuildISO]] script. This makes it possible to build a system which has all the tools required to create a [[Live CD]].
+
+<scriptname>buildiso-dep</scriptname>
+
+== Dependencies ==
+* <dependency value="busybox"></dependency>[[BusyBox]]
+* <dependency value="squashfs-tools"></dependency>[[SquashFS Tools]]
+* <dependency value="syslinux"></dependency>[[Syslinux]]
+* <dependency>libisoburn</dependency>
+
+== Installation ==
+This is a [[Package Group]]. If it is selected in LFScript, it will simply install all dependencies listed above.
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>busybox</scriptname>
+
+== Sources ==
+* <sourcecode>http://busybox.net/downloads/busybox-1.22.1.tar.bz2</sourcecode>
+
+<md5>337d1a15ab1cb1d4ed423168b1eb7d7e  busybox-1.22.1.tar.bz2</md5>
+
+== Installation ==
+Like the Linux kernel, [[BusyBox]] can be configured using <code>make menuconfig</code>. However, the following commands build a <code>busybox</code> executable suitable for use in a [[Live CD]]:
+
+<build>make defconfig &&
+sed 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' -i .config</build>
+
+<build>make</build>
+
+<build user="root">cp -v busybox /bin</build>
+</package>
+<package>
+[[Category:Scripts]]
+[[Syslinux]] provides a set of boot loaders, among them <code>isolinux</code> which is used to make a [[Live CD]] bootable.
+
+<scriptname>syslinux</scriptname>
+
+== Sources ==
+* <sourcecode>http://www.kernel.org/pub/linux/utils/boot/syslinux/4.xx/syslinux-4.07.tar.bz2</sourcecode>
+
+<md5>9ff6e1b94efab931fb4717b600d88779  syslinux-4.07.tar.bz2</md5>
+
+== Dependencies ==
+* <dependency>nasm</dependency>
+* <dependency>python2</dependency>
+
+== Installation ==
+<build>make spotless</build>
+
+<build>make</build>
+
+<build user="root">make install</build>
+
+== Packaging note ==
+<destdir>INSTALLROOT</destdir>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>memtest86+</scriptname>
+
+== Sources ==
+* <sourcecode>http://www.memtest.org/download/4.20/memtest86+-4.20.tar.gz</sourcecode>
+
+<md5>ef62c2f5be616676c8c62066dedc46b3  memtest86+-4.20.tar.gz</md5>
+
+== Installation ==
+<build>make</build>
+
+<build user="root">cp -v memtest.bin /boot/memtest86</build>
+
+== Notes ==
+Currently, this package does not compile on <code>x86_64</code> systems.
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>os-prober</scriptname>
+
+== Sources ==
+* <sourcecode>http://ftp.de.debian.org/debian/pool/main/o/os-prober/os-prober_1.63.tar.gz</sourcecode>
+
+<md5>16c999d00a925968c99a8ca8cc9a3c3a  os-prober_1.63.tar.gz</md5>
+
+== Dependencies ==
+* <dependency>which</dependency>
+
+This dependency is not actually for [[OS Prober]], but for <code>grub</code> which needs it to locate [[OS Prober]].
+
+== Installation ==
+<build>make</build>
+
+<build user="root">mkdir -pv /usr/{lib,share}/os-prober
+cp -v os-prober /usr/bin
+cp -v linux-boot-prober /usr/bin
+cp -v newns /usr/lib/os-prober
+cp -v common.sh /usr/share/os-prober</build>
+
+<build user="root">mkdir -pv /usr/lib/linux-boot-probes/mounted
+mkdir -pv /usr/lib/os-probes/{init,mounted}</build>
+
+<build user="root">cp -v linux-boot-probes/common/*         /usr/lib/linux-boot-probes
+cp -v linux-boot-probes/mounted/common/* /usr/lib/linux-boot-probes/mounted
+cp -v linux-boot-probes/mounted/x86/*    /usr/lib/linux-boot-probes/mounted</build>
+
+<build user="root">cp -v  os-probes/common/*         /usr/lib/os-probes
+cp -v  os-probes/init/common/*    /usr/lib/os-probes/init
+cp -v  os-probes/mounted/common/* /usr/lib/os-probes/mounted
+cp -vR os-probes/mounted/x86/*    /usr/lib/os-probes/mounted</build>
+
+<build user="root">mkdir -pv /var/lib/os-prober</build>
+</package>
+<package>
+Compiles the Linux kernel with UnionFS and SquashFS support.
+
+<scriptname>kernel-live</scriptname>
+
+== Sources ==
+* <sourcecode>https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.16.1.tar.xz</sourcecode>
+* <sourcecode>http://download.filesystems.org/unionfs/unionfs-2.x-latest/unionfs-2.6_for_3.16.1.diff.gz</sourcecode>
+
+<md5>e7a985a243b7941b6bc6240fcbc797fc  linux-3.16.1.tar.xz
+f2c22645a7306720a8278acae72969cd  unionfs-2.6_for_3.16.1.diff.gz</md5>
+
+== Installation ==
+<build># Add UnionFS to the kernel
+cp -v ../$(readlink ../unionfs-2.6_for_3.16.1.diff.gz) .
+gzip -d unionfs-2.6_for_3.16.1.diff.gz
+patch -Np1 -i unionfs-2.6_for_3.16.1.diff</build>
+
+<build># Add UnionFS to the kernel configuration
+echo "CONFIG_UNION_FS=y"                  >> .config
+echo "# CONFIG_UNION_FS_XATTR is not set" >> .config
+echo "# CONFIG_UNION_FS_DEBUG is not set" >> .config</build>
+
+<build># Ensure SquashFS is selected in the kernel configuration
+if [ "$(cat .config | grep '# CONFIG_SQUASHFS is not set')" ]; then
+    sed -i "s@# CONFIG_SQUASHFS is not set@@g" .config
+
+    echo "CONFIG_SQUASHFS=y"                                >> .config
+    echo "CONFIG_SQUASHFS_FILE_CACHE=y"                     >> .config
+    echo "# CONFIG_SQUASHFS_FILE_DIRECT is not set"         >> .config
+    echo "CONFIG_SQUASHFS_DECOMP_SINGLE=y"                  >> .config
+    echo "# CONFIG_SQUASHFS_DECOMP_MULTI is not set"        >> .config
+    echo "# CONFIG_SQUASHFS_DECOMP_MULTI_PERCPU is not set" >> .config
+    echo "# CONFIG_SQUASHFS_XATTR is not set"               >> .config
+    echo "CONFIG_SQUASHFS_ZLIB=y"                           >> .config
+    echo "CONFIG_SQUASHFS_LZO=y"                            >> .config
+    echo "CONFIG_SQUASHFS_XZ=y"                             >> .config
+    echo "# CONFIG_SQUASHFS_4K_DEVBLK_SIZE is not set"      >> .config
+    echo "# CONFIG_SQUASHFS_EMBEDDED is not set"            >> .config
+    echo "CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE=3"            >> .config
+fi</build>
+
+<build># Compile
+make</build>
+
+<build user="root"># Install
+cp -v arch/x86/boot/bzImage /boot/vmlinuz-3.16.1-live
+cp -v .config /boot/config-3.16.1-live</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate</scriptname>
+
+== Dependencies ==
+* <dependency value="mate-core"></dependency>[[MATE Core]]
+
+== Installation ==
+This is a [[Package Group]]. If it is selected in LFScript, it will simply install all dependencies listed above.
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>yelp-tools</scriptname>
+
+== Sources ==
+* <sourcecode>http://ftp.gnome.org/pub/GNOME/core/3.13/3.13.4/sources/yelp-tools-3.13.3.tar.xz</sourcecode>
+
+<md5>c4be924aca75c31b60e5ad10a7154fff  yelp-tools-3.13.3.tar.xz</md5>
+
+== Dependencies ==
+* <dependency>yelp-xsl</dependency>
+
+== Installation ==
+<build>./configure --prefix=/usr &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-core</scriptname>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency value="mate-desktop"></dependency>[[mate-desktop]]
+* <dependency value="libmatekbd"></dependency>[[libmatekbd]]
+* <dependency value="libmateweather"></dependency>[[libmateweather]]
+* <dependency value="mate-icon-theme"></dependency>[[mate-icon-theme]]
+* <dependency value="mate-dialogs"></dependency>[[mate-dialogs]]
+* <dependency value="caja"></dependency>[[Caja]]
+* <dependency value="mate-polkit"></dependency>[[mate-polkit]]
+* <dependency value="marco"></dependency>[[Marco]]
+* <dependency value="mate-settings-daemon"></dependency>[[mate-settings-daemon]]
+* <dependency value="mate-session-manager"></dependency>[[mate-session-manager]]
+* <dependency value="mate-menus"></dependency>[[mate-menus]]
+* <dependency value="mate-panel"></dependency>[[mate-panel]]
+* <dependency value="mate-backgrounds"></dependency>[[mate-backgrounds]]
+* <dependency value="mate-themes"></dependency>[[mate-themes]]
+* <dependency value="mate-notification-daemon"></dependency>[[mate-notification-daemon]]
+* <dependency value="mate-control-center"></dependency>[[mate-control-center]]
+
+== Installation ==
+This is a [[Package Group]]. If it is selected in LFScript, it will simply install all dependencies listed above.
+</package>
+<package>
+[[Category:Scripts]]
+[[Caja]] is the MATE desktop file manager.
+
+<scriptname>caja</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/caja-1.8.1.tar.xz</sourcecode>
+
+<md5>e81bbec307c8aafd9663f4927f309ba4  caja-1.8.1.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-desktop"></dependency>[[mate-desktop]]
+* <dependency>libunique</dependency>
+* <dependency>shared-mime-info</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --libexecdir=/usr/lib/caja \
+        --disable-static &&
+make</build>
+
+<build user="root">make install</build>
+
+<build user="root">install -v -m755 -d /usr/share/doc/caja
+install -v -m644 docs/*.{txt,dia,pdf,sxw,faq,html} \
+        /usr/share/doc/caja</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>libmatekbd</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/libmatekbd-1.8.0.tar.xz</sourcecode>
+
+<md5>e2d7c8ee6d5375ed923c2399eb63aeab  libmatekbd-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency>gtk+2</dependency>
+* <dependency>libxklavier</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>libmateweather</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/libmateweather-1.8.0.tar.xz</sourcecode>
+
+<md5>f11f7f3c6ae72e58b54931cb09bb76a7  libmateweather-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency>gtk+2</dependency>
+* <dependency>gtk-doc</dependency>
+* <dependency>libsoup</dependency>
+
+== Installation ==
+To build against <code>GLib-2.40</code> or newer, apply the following fix:
+<build>sed 's/g_memmove/memmove/g' -i libmateweather/weather.c</build>
+
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --disable-static \
+        --enable-locations-compression &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>marco</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/marco-1.8.1.tar.xz</sourcecode>
+
+<md5>453245abd553594c9c5e5d7dd037b498  marco-1.8.1.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-dialogs"></dependency>[[mate-dialogs]]
+* <dependency>libcanberra</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --libexecdir=/usr/lib/marco \
+        --localstatedir=/var \
+        --disable-static &&
+make</build>
+
+<build user="root">make install</build>
+
+<build user="root">install -v -m755 -d /usr/share/doc/marco
+install -v -m644 README rationales.txt doc/*.txt \
+        /usr/share/doc/marco</build>
+
+<build user="root">cat > ~/.xinitrc << "EOF"
+xterm &
+exec marco
+EOF</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-backgrounds</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-backgrounds-1.8.0.tar.xz</sourcecode>
+
+<md5>1b6adb6f732941afbf8f0f722b361fe4  mate-backgrounds-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency>glib2</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --localstatedir=/var \
+        --sysconfdir=/etc/mate/1.8 &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-common</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-common-1.8.0.tar.xz</sourcecode>
+
+<md5>c7db8bf321bbba37a254aed12a5e129d  mate-common-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency>which</dependency>
+
+The dependency <code>which</code> is used by all packages that require [[mate-common]] to locate it.
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-control-center</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-control-center-1.8.2.tar.xz</sourcecode>
+
+<md5>d6c98a8b230090e4728853f07efcb558  mate-control-center-1.8.2.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-menus"></dependency>[[mate-menus]]
+* <dependency value="marco"></dependency>[[Marco]]
+* <dependency value="mate-settings-daemon"></dependency>[[mate-settings-daemon]]
+* <dependency>libunique</dependency>
+* <dependency>shared-mime-info</dependency>
+* <dependency>desktop-file-utils</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --libexecdir=/usr/lib/mate-control-center \
+        --disable-static &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-desktop</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-desktop-1.8.1.tar.xz</sourcecode>
+
+<md5>985c9396685bf31217f5322a6e3cbaff  mate-desktop-1.8.1.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency value="yelp-tools"></dependency>[[Yelp Tools]]
+* <dependency>gtk-doc</dependency>
+* <dependency>dconf</dependency>
+* <dependency>gtk+2</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --disable-static &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-dialogs</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-dialogs-1.8.0.tar.xz</sourcecode>
+
+<md5>c52cba1b3cb8c600e710e129a5118e84  mate-dialogs-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency value="yelp-tools"></dependency>[[Yelp Tools]]
+* <dependency>gtk+2</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --localstatedir=/var \
+        --mandir=/usr/share/man \
+        --sysconfdir=/etc/mate/1.8 &&
+make</build>
+
+<build user="root">make install</build>
+
+<build user="root">ln -s matedialog /usr/bin/zenity</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-icon-theme</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-icon-theme-1.8.0.tar.xz</sourcecode>
+
+<md5>04d3bdcbf20195436ba25b6c70b144aa  mate-icon-theme-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency>icon-naming-utils</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-menus</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-menus-1.8.0.tar.xz</sourcecode>
+
+<md5>360bba4f4f2d0f24ebebb2c8517d996a  mate-menus-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency>glib2</dependency>
+* <dependency>gobject-introspection</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --disable-static &&
+make</build>
+
+<build user="root">make install</build>
+
+<build user="root">echo "export XDG_CONFIG_DIRS=/etc/mate/1.8/xdg" \
+    > /etc/profile.d/mate.sh
+
+echo "export XDG_DATA_DIRS=/usr/share:/usr/local/share" \
+    >> /etc/profile.d/mate.sh</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-notification-daemon</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-notification-daemon-1.8.0.tar.xz</sourcecode>
+
+<md5>f9cb50a86c30bccc8728adcbf6a04f32  mate-notification-daemon-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency>libwnck2</dependency>
+* <dependency>libcanberra</dependency>
+* <dependency>dbus-glib</dependency>
+* <dependency>libnotify</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --libexecdir=/usr/lib/mate-notification-daemon \
+        --localstatedir=/var \
+        --sysconfdir=/etc/mate/1.8 \
+        --disable-static &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-panel</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-panel-1.8.0.tar.xz</sourcecode>
+
+<md5>fe1a3ff81a5d12cdbb8f3882cbb4f188  mate-panel-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-desktop"></dependency>[[mate-desktop]]
+* <dependency value="mate-menus"></dependency>[[mate-menus]]
+* <dependency value="libmateweather"></dependency>[[libmateweather]]
+* <dependency>libwnck2</dependency>
+* <dependency>libcanberra</dependency>
+* <dependency>dbus-glib</dependency>
+* <dependency>librsvg</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --libexecdir=/usr/lib/mate-panel \
+        --mandir=/usr/share/man \
+        --disable-static \
+        --enable-introspection &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-polkit</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-polkit-1.8.0.tar.xz</sourcecode>
+
+<md5>bd7dfb225e1ba6aac3c5752d496071d8  mate-polkit-1.8.0.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency>gtk+2</dependency>
+* <dependency>gtk-doc</dependency>
+* <dependency>polkit</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --libexecdir=/usr/lib/polkit-mate \
+        --localstatedir=/var \
+        --sysconfdir=/etc/mate/1.8 \
+        --disable-static &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-session-manager</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-session-manager-1.8.1.tar.xz</sourcecode>
+
+<md5>b19b9e585f7343e34bff9b58c4f1d963  mate-session-manager-1.8.1.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency>gtk+2</dependency>
+* <dependency>dbus-glib</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --libexecdir=/usr/lib/mate-session-manager \
+        --mandir=/usr/share/man \
+        --localstatedir=/var &&
+make</build>
+
+<build user="root">make install</build>
+
+<build user="root">echo "exec mate-session" \
+        > /etc/alternatives/xinitrc/Mate.xinitrc
+
+echo "exec ck-launch-session mate-session" \
+        > /etc/alternatives/xinitrc/Mate_ConsoleKit.xinitrc</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-settings-daemon</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-settings-daemon-1.8.1.tar.xz</sourcecode>
+
+<md5>ba264ff243f70136de486923f502710e  mate-settings-daemon-1.8.1.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-desktop"></dependency>[[mate-desktop]]
+* <dependency value="libmatekbd"></dependency>[[libmatekbd]]
+* <dependency>dbus-glib</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --libexecdir=/usr/lib/mate-settings-daemon \
+        --localstatedir=/var \
+        --disable-static &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>mate-themes</scriptname>
+
+== Sources ==
+* <sourcecode>http://pub.mate-desktop.org/releases/1.8/mate-themes-1.8.1.tar.xz</sourcecode>
+
+<md5>5c348c11eb78c0ee0442ee429132d2c7  mate-themes-1.8.1.tar.xz</md5>
+
+== Dependencies ==
+* <dependency value="mate-common"></dependency>[[mate-common]]
+* <dependency>gtk+2</dependency>
+* <dependency>icon-naming-utils</dependency>
+
+== Installation ==
+<build>./autogen.sh --prefix=/usr \
+        --localstatedir=/var \
+        --sysconfdir=/etc/mate/1.8 \
+        --enable-all-themes &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>slim</scriptname>
+
+== Sources ==
+* <sourcecode>http://download.berlios.de/slim/slim-1.3.2.tar.gz</sourcecode>
+
+== Dependencies ==
+* <dependency>libjpeg</dependency>
+* <dependency>x-window-system</dependency>
+
+== Installation ==
+
+Allow slim to compile against libpng 1.5:
+<build>sed 's@png_ptr->jmpbuf@png_jmpbuf(png_ptr)@g' -i png.c
+sed 's@-lpng12@-lpng15@g' -i Makefile</build>
+
+By default, Slim uses the <code>.xinitrc</code> file in a users home directory to set up an X session. Change this to use the system-wide <code>xinitrc</code> in stead:
+<build>sed 's@~/.@/etc/X11/app-defaults/@g' -i slim.conf</build>
+
+Compile the package:
+<build>sed 's@/bin/slim@/sbin/slim@g' -i Makefile
+make</build>
+
+<build user="root">make install</build>
+
+The next two code blocks will install a custom boot script, which will launch the Slim Display Manager on boot.
+<build user="root">cat > /etc/rc.d/init.d/slim << "EOF"
+#!/bin/sh
+# Written by Marcel van den Boer
+
+. /lib/lsb/init-functions
+
+case "$1" in
+    start)
+        log_info_msg "Starting the Slim Display Manager..."
+
+        # Update sessions list
+        if [ -r /etc/alternatives/xinitrc/functions ]; then
+            . /etc/alternatives/xinitrc/functions
+            SESSIONS="$(listSessions)"
+            sed "s@^sessions.*\$@sessions ${SESSIONS}@g" -i /etc/slim.conf
+        fi
+
+        /usr/sbin/slim -d
+        evaluate_retval
+        ;;
+
+    stop)
+        log_info_msg "Stopping the Slim Display Manager..."
+        killall slim || failed=1
+        killall X || failed=1
+
+        (exit ${failed})
+        evaluate_retval
+
+        rm -rf /var/run/slim.lock
+        ;;
+
+    restart)
+        ${0} stop
+        sleep 1
+        ${0} start
+        ;;
+
+    *)
+        echo "Usage: ${0} {start|stop|restart}"
+        exit 1
+        ;;
+esac
+EOF
+chmod 755 /etc/rc.d/init.d/slim</build>
+
+<build user="root">for n in 0 1 2 3 4 6; do
+    ln -svf ../init.d/slim /etc/rc.d/rc${n}.d/K05slim
+done
+ln -svf ../init.d/slim /etc/rc.d/rc5.d/S95slim</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>compiz-fusion</scriptname>
+
+== Dependencies ==
+* <dependency value="ccsm"></dependency>[[CompizConfig Settings Manager]]
+* <dependency value="compiz-plugins-main"></dependency>[[Compiz Plugins Main]]
+* <dependency value="emerald"></dependency>[[Emerald]]
+
+The [[Emerald]] dependency is optional, but will be installed by LFScript anyway.
+
+== Installation ==
+This is a [[Package Group]]. If it is selected in LFScript, it will simply install all dependencies listed above.
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>compiz</scriptname>
+
+== Sources ==
+* <sourcecode>http://releases.compiz-fusion.org/0.8.8/compiz-0.8.8.tar.bz2</sourcecode>
+
+<md5>d14508f2a0e129b147fc0d905984c1fc  compiz-0.8.8.tar.bz2</md5>
+
+== Dependencies ==
+* <dependency>startup-notification</dependency>
+* <dependency>gtk+2</dependency>
+* <dependency value="libwnck_compat"></dependency>[[libwnck]]
+
+It is possible to build this software without <code>gtk+2</code> and <code>libwnck</code> installed. However, without them <code>gtk-window-decorator</code> will not be built and you will have to install [[Emerald]] if you want framed windows under [[Compiz]].
+
+== Installation ==
+<build>./configure --prefix=/usr \
+        --disable-gconf
+make</build>
+
+The <code>--disable-gconf</code> switch allows [[Compiz]] to be built without a GConf backend. I'm avoiding GConf at the moment, because it complicates the current transition to the [[Mate Desktop Environment]].
+
+<build user="root">make install</build>
+
+<build user="root">cat > ~/.xinitrc << "EOF"
+compiz ccp &
+exec xterm
+EOF</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>compiz-bcop</scriptname>
+
+== Sources ==
+* <sourcecode>http://releases.compiz-fusion.org/0.8.8/compiz-bcop-0.8.8.tar.bz2</sourcecode>
+
+== Dependencies ==
+* <dependency>libxslt</dependency>
+* <dependency>pkgconfig</dependency>
+
+== Installation ==
+<build>./configure --prefix=/usr &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>compiz-plugins-main</scriptname>
+
+== Sources ==
+* <sourcecode>http://releases.compiz-fusion.org/0.8.6/compiz-plugins-main-0.8.6.tar.bz2</sourcecode>
+
+== Dependencies ==
+* <dependency value="compiz-bcop"></dependency>[[BCOP]]
+* <dependency value="compiz"></dependency>[[Compiz]]
+* <dependency>libjpeg</dependency>
+
+== Installation ==
+<build>./configure --prefix=/usr &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>libcompizconfig</scriptname>
+
+== Sources ==
+* <sourcecode>http://releases.compiz-fusion.org/0.8.8/libcompizconfig-0.8.8.tar.bz2</sourcecode>
+
+== Dependencies ==
+* <dependency value="compiz"></dependency>[[Compiz]]
+
+== Installation ==
+<build>./configure --prefix=/usr \
+        --sysconfdir=/etc &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>compizconfig-python</scriptname>
+
+== Sources ==
+* <sourcecode>http://releases.compiz-fusion.org/0.8.4/compizconfig-python-0.8.4.tar.bz2</sourcecode>
+
+== Dependencies ==
+* <dependency value="libcompizconfig"></dependency>[[Libcompizconfig]]
+* <dependency value="python-pyrex"></dependency>[[Pyrex]]
+
+== Installation ==
+<build>./configure --prefix=/usr &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>ccsm</scriptname>
+
+== Sources ==
+* <sourcecode>http://releases.compiz-fusion.org/0.8.4/ccsm-0.8.4.tar.bz2</sourcecode>
+
+== Dependencies ==
+* <dependency value="compizconfig-python"></dependency>[[CompizConfig Python]]
+* <dependency>python-pygtk</dependency>
+
+== Installation ==
+<build>make</build>
+
+<build user="root">make PREFIX=/usr install</build>
+
+== Packaging note ==
+<destdir>PREFIX</destdir>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>emerald</scriptname>
+
+== Sources ==
+* <sourcecode>http://releases.compiz-fusion.org/components/emerald/emerald-0.8.8.tar.bz2</sourcecode>
+
+== Dependencies ==
+* <dependency value="compiz"></dependency>[[Compiz]]
+* <dependency value="libwnck_compat"></dependency>[[libwnck]]
+
+== Installation ==
+Make [[Emerald]] link against <code>libM</code> and <code>libDL</code> (needed for newer versions of GCC):
+<build>sed 's@$(emerald_LDADD)@$(emerald_LDADD) -lm -ldl@g' -i src/Makefile.in</build>
+
+<build>./configure --prefix=/usr &&
+make</build>
+
+<build user="root">make install</build>
+</package>
+<package>
+[[Category:Scripts]]
+Adobe's Flash Player is closed source software. If you run the commands on this page, only a script is installed which facilitates the installation of the actual plugin.
+
+<scriptname>flash-plugin</scriptname>
+
+== Dependencies ==
+* <dependency>wget</dependency>
+
+You might also want to install <code>firefox</code>...
+
+== Installation ==
+
+<build user="root">cat > /usr/sbin/install-flash-plugin << "EOF"
+#!/bin/sh
+# This script downloads and installs Adobe Flash Player.
+set -e
+
+getFlashPlayer() {
+    local ARCH="$(uname -m)"
+    case $(uname -m) in
+        i?86) local ARCH="i386" ;;
+    esac
+
+    local FILENAME="install_flash_player_11_linux.${ARCH}.tar.gz"
+    local URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.1.102.55/${FILENAME}"
+
+    local TEMP_DIR="$(mktemp -d)"
+    pushd "${TEMP_DIR}"
+
+    wget "${URL}"
+    tar xf "${FILENAME}"
+
+    cp -vR usr /
+    mkdir -p /usr/lib/mozilla/plugins
+    cp -v libflashplayer.so /usr/lib/mozilla/plugins
+
+    popd
+    rm -rf "${TMP_DIR}"
+
+    echo "Done!"
+}
+
+getFlashPlayer
+EOF</build>
+
+<build user="root">chmod 755 /usr/sbin/install-flash-plugin</build>
+
+== Usage ==
+After you have booted your OS for the first time, run the following command as '''root''' to install the flash plugin:
+
+<pre>install-flash-plugin</pre>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>python-pyrex</scriptname>
+
+== Sources ==
+* <sourcecode>http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/Pyrex-0.9.9.tar.gz</sourcecode>
+
+== Dependencies ==
+* <dependency>python2</dependency>
+
+== Installation ==
+<build user="root">python setup.py install</build>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>fsos</scriptname>
+
+== Dependencies ==
+
+* ''Non-graphical Environment:''
+** <dependency value="fsos-nox"></dependency>[[fsOS without X11]]
+
+* ''Desktop Environment:''
+** <dependency value="mate"></dependency>[[MATE Desktop Environment]]
+** <dependency value="slim"></dependency>[[Slim Display Manager]]
+** <dependency value="compiz-fusion"></dependency>[[Compiz Fusion]]
+
+* ''Desktop Utilities:''
+** <dependency value="nm-applet"></dependency>[[nm-applet]]
+
+* ''Browser:''
+** <dependency>firefox</dependency>
+** <dependency value="flash-plugin"></dependency>[[Flash Plugin]]
+
+== Installation ==
+This is a [[Package Group]]. If it is selected in LFScript, it will simply install all dependencies listed above.
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>fsos-32</scriptname>
+
+== Dependencies ==
+* <dependency value="fsos"></dependency>[[fsOS]]
+* <dependency value="fsos-nox-32"></dependency>[[fsOS without X11, 32-bit]]
+
+== Installation ==
+This is a [[Package Group]]. If it is selected in LFScript, it will simply install all dependencies listed above.
+</package>
+<package>
+[[Category:Scripts]]
+This package lists all software to be included in the [[fsOS]] distribution as a dependency, with the exception of graphical software. It further contains the instructions that configure and brand the distribution.
+
+<scriptname>fsos-nox</scriptname>
+
+== Sources ==
+* <sourcecode>http://www.lfscript.org/sources/fsos_boot.png</sourcecode>
+* <sourcecode>http://www.lfscript.org/sources/MnmKr16-IBMPC.psf.gz</sourcecode>
+
+<md5>f7828ddf8eef71a2d269462d9cef3a03  fsos_boot.png
+4ad62706f96d28304a501b96ecd107a7  MnmKr16-IBMPC.psf.gz</md5>
+
+The file <code>fsos_boot.png</code> is used as background image for the <code>isolinux</code> boot menu on the Live CD. <code>MnmKr16-IBMPC.psf.gz</code> is a custom font which is heavily based on the font presented on http://powerman.name/config/font.html.
+
+== Dependencies ==
+* <dependency>alsa-utils</dependency>
+* <dependency>postlfs</dependency>
+* <dependency>which</dependency>
+* <dependency>nano</dependency>
+* <dependency>wget</dependency>
+* <dependency value="os-prober"></dependency>[[OS Prober]]
+* <dependency value="buildiso-dep"></dependency>[[BuildISO Dependencies]]
+* <dependency value="btrfs-progs"></dependency>[[BtrFs Progs]]
+* <dependency>networkmanager</dependency>
+* <dependency>dhcpcd</dependency>
+* <dependency>wpa_supplicant</dependency>
+* <dependency value="kernel-live"></dependency>[[Live CD Kernel]] (UnionFS)
+
+== Installation ==
+<build user="root"># Install the custom font
+mkdir -pv /usr/share/consolefonts
+mkdir -pv /etc/sysconfig
+
+cat MnmKr16-IBMPC.psf.gz > /usr/share/consolefonts/MnmKr16-IBMPC.psf.gz
+
+cat > /etc/sysconfig/console << "EOF"
+# Begin /etc/sysconfig/console
+
+FONT="MnmKr16-IBMPC -m 8859-1"
+
+# End /etc/sysconfig/console
+EOF</build>
+
+<!-- Spaces around the var, ensures ${FAKEROOT} is added -->
+<build user="root"># Prepare a LiveCD configuration with a graphical boot menu
+local LIVEDIR="usr/share/live"
+
+mkdir -pv /${LIVEDIR}/medium/boot/isolinux
+cat fsos_boot.png > /${LIVEDIR}/medium/boot/isolinux/fsos_boot.png 
+
+cat > /${LIVEDIR}/medium/boot/isolinux/isolinux.cfg << "EOF"
+DEFAULT vesamenu.c32
+PROMPT 0
+TIMEOUT 300
+
+MENU BACKGROUND fsos_boot.png
+
+MENU COLOR border 0 #00000000 #00000000 none
+MENU COLOR title  0 #00000000 #00000000 none
+MENU COLOR tabmsg 0 #00000000 #00000000 none
+MENU COLOR unsel  0 #FFFFFFFF #00000000 none
+MENU COLOR hotkey 0 #FFFFFFFF #00000000 none
+MENU COLOR sel    0 #FF006080 #FFFFFFFF none
+MENU COLOR hotsel 0 #FF006080 #FFFFFFFF none
+
+MENU VSHIFT 15
+MENU MARGIN 22
+MENU ROWS 4
+MENU TIMEOUTROW -1
+MENU CMDLINEROW -1
+
+INCLUDE i486.cfg
+INCLUDE i586.cfg
+INCLUDE i686.cfg
+INCLUDE x86_64.cfg
+INCLUDE memtest86.cfg
+
+LABEL harddisk
+    MENU LABEL Boot from first ^Hard disk
+    LOCALBOOT 0x80
+
+EOF
+
+cat > /${LIVEDIR}/medium/boot/isolinux/$(uname -m).cfg << "EOF"
+LABEL system_<ARCH>
+    MENU LABEL ^Boot the live system (<ARCH>)
+    KERNEL /boot/<ARCH>/vmlinuz
+    APPEND initrd=/boot/<ARCH>/initram.fs vga=769 quiet
+EOF
+sed -i "s/<ARCH>/$(uname -m)/g" /${LIVEDIR}/medium/boot/isolinux/$(uname -m).cfg</build>
+
+<build user="root"># If this system is to be used as a Live CD, configure it as such
+cat > /${LIVEDIR}/sec_init.sh << EndOfFile
+#!/bin/busybox sh
+
+# This script modifies the system at boot time, but only if it is started from
+# a Live CD. This way, the system image remains clean of any Live CD specific
+# settings, and can be installed to harddisk as a normal OS.
+
+# Print a welcome message before login
+b="\033[1;34m" # Light Blue
+c="\033[0;1m"  # Bright White
+d="\033[1;33m" # Bright Yellow
+e="\033[1;31m" # Bright Red
+
+(/bin/busybox clear;
+ echo -en "\${b}______________________________________________________________";
+ echo -e "___";
+ echo -e "";
+ echo -e "\${c}  Welcome to the 'From Script' Live OS! ";
+ echo -e "";
+ echo -e "\${b}    Created on \${d}_DATE_STAMP_\${b}.";
+ echo -e "\${b}    Created with an \${e}$(uname -m)\${b} processor.";
+ echo -e "\${b}    You are now using an \${e}\\m\${b} processor.";
+ echo -e "";
+ echo -e "\${c}  Login instructions:";
+ echo -e "\${b}    In addition to the 'root' account, an unpriviledged account";
+ echo -e "\${b}    called 'user' is also available. There is no password set";
+ echo -e "\${b}    for either account.";
+ echo -en "\${b}______________________________________________________________";
+ echo -e "___";
+ echo -e "\033[0m") > \${ROOT}/etc/issue
+
+# Configure users
+cat > \${ROOT}/etc/rc.d/rcS.d/S80livesetup << "EOF"
+#!/bin/sh
+
+case "\${1}" in
+    start)
+        # Add a normal user with sound card privileges
+        groupadd user
+        useradd -m user -g user -G audio
+
+        # Remove passwords for LiveCD users
+        echo "user:" | chpasswd
+        echo "root:" | chpasswd
+        ;;
+    *)
+        echo "Usage: \${0} {start}"
+        exit 1
+        ;;
+esac
+EOF
+chmod 755 \${ROOT}/etc/rc.d/rcS.d/S80livesetup
+
+EndOfFile
+chmod +x /${LIVEDIR}/sec_init.sh</build>
+
+== Post-installation ==
+<delaypostinst/><postinst>local LIVEBOOT="/usr/share/live/medium/boot"</postinst>
+
+<postinst># Slightly change the colors of the "OK" messages on boot
+sed -i 's@#BRACKET="\\\\033\[1;34m" # Blue@BRACKET="\\\\033\[0;34m"@g' \
+        /etc/sysconfig/rc.site
+sed -i 's@#SUCCESS="\\\\033\[1;32m" # Green@SUCCESS="\\\\033\[1;34m"@g' \
+        /etc/sysconfig/rc.site</postinst>
+
+<postinst># Apply a datestamp
+local DATESTAMP="$(date +%B\ %d,\ %C%y)"
+sed -i "s@_DATE_STAMP_@${DATESTAMP}@g" /usr/share/live/sec_init.sh</postinst>
+
+<postinst># Ensure the installed version of syslinux' vesamenu is copied to the live cd
+cp -v /usr/share/syslinux/vesamenu.c32 ${LIVEBOOT}/isolinux</postinst>
+
+<postinst># If memtest has been installed, make it available in the live cd boot menu
+[ ! -r /boot/memtest86 ] ||
+cp -v /boot/memtest86 ${LIVEBOOT}
+
+[ ! -r /boot/memtest86 ] ||
+cat > ${LIVEBOOT}/isolinux/memtest86.cfg << "EOF"
+LABEL memtest86
+    MENU LABEL ^Memory test (Memtest86+)
+    KERNEL /boot/memtest86
+EOF</postinst>
+
+<postinst># Set distribution codename
+sed 's/<your name here>/fsOS (LFScript 4)/g' -i /etc/lsb-release</postinst>
+</package>
+<package>
+[[Category:Scripts]]
+<scriptname>fsos-nox-32</scriptname>
+
+== Dependencies ==
+* <dependency value="fsos-nox"></dependency>[[fsOS without X11]]
+* <dependency value="memtest86+"></dependency>[[Memtest86+]]
+
+== Installation ==
+This is a [[Package Group]]. If it is selected in LFScript, it will simply install all dependencies listed above.
+</package>
+</lfscriptPackages>
+<userPackages>
+</userPackages>
+

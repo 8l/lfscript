@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://releases.compiz-fusion.org/components/emerald/emerald-0.8.8.tar.bz2"
+MD5SUMLIST="dontverify"
+REQUIRES="compiz libwnck_compat"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed 's@$(emerald_LDADD)@$(emerald_LDADD) -lm -ldl@g' -i src/Makefile.in
+
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnome.org/pub/gnome/sources/NetworkManager/0.9/NetworkManager-0.9.10.0.tar.xz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="21b9051dbbd6434df4624a90ca9d71b6
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+REQUIRES="dbus-glib iptables libndp libnl newt nss udev-extras"
+RECOMMENDS="dhcpcd gobject-introspection"
+
+# (*) Install 'dhcpcd' because it is required for DHCP functionality
+# (*) Install 'gobject-introspection' because it is required to build network-manager-applet
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --localstatedir=/var \
+            --with-nmtui         \
+            --disable-ppp        \
+            --with-systemdsystemunitdir=no
+make
+
+make DESTDIR=${FAKEROOT} install
+
+cat >> ${FAKEROOT}/etc/NetworkManager/NetworkManager.conf << "EOF"
+[main]
+plugins=keyfile
+EOF
+
+includeBootscript networkmanager
+
+#################
+} # END OF FILE #
+#################
+

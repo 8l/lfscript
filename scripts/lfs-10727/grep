@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu/grep/grep-2.20.tar.xz"
+MD5SUMLIST="2cbea44a4f1548aee20b9ff2d3076908"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --bindir=/bin
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+######################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+######################################################
+
+./configure --prefix=/tools
+
+make
+
+make install
+
+#################
+} # END OF FILE #
+#################
+

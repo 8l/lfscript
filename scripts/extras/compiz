@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://releases.compiz-fusion.org/0.8.8/compiz-0.8.8.tar.bz2"
+MD5SUMLIST="d14508f2a0e129b147fc0d905984c1fc"
+REQUIRES="gtk+2 libwnck_compat startup-notification"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+        --disable-gconf
+make
+
+make DESTDIR=${FAKEROOT} install
+
+cat > ${FAKEROOT}/etc/alternatives/xinitrc/compiz.xinitrc << "EOF"
+compiz ccp &
+exec xterm
+EOF
+
+#################
+} # END OF FILE #
+#################
+

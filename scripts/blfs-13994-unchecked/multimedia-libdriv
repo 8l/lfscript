@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+REQUIRES="alsa-firmware alsa-lib alsa-oss alsa-plugins alsa-tools alsa-utils audiofile faac faad2 fdk-aac flac grilo grilo-plugins gst-ffmpeg gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly gst10-libav gst10-plugins-bad gst10-plugins-base gst10-plugins-good gst10-plugins-ugly gstreamer gstreamer10 liba52 libao libass libcanberra libdiscid libdv libdvdcss libdvdnav libdvdread libmad libmpeg2 libmusicbrainz libmusicbrainz5 libogg libquicktime libsamplerate libsndfile libtheora libvorbis libvpx opal opus pulseaudio sbc sdl soundtouch speex taglib x264 xine-lib xvid"
+TAGS="group"
+

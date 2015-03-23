@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.xchat.org/files/source/2.8/xchat-2.8.8.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/xchat-2.8.8-glib-2.31-1.patch"
+MD5SUMLIST="6775c44f38e84d06c06c336b32c4a452
+            dontverify"
+REQUIRES="glib2"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../xchat-2.8.8-glib-2.31-1.patch
+
+LIBS+="-lgmodule-2.0"         \
+./configure --prefix=/usr     \
+            --sysconfdir=/etc \
+            --enable-shm
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/xchat-2.8.8
+install -v -m644    README faq.html \
+                    ${FAKEROOT}/usr/share/doc/xchat-2.8.8
+
+#################
+} # END OF FILE #
+#################
+

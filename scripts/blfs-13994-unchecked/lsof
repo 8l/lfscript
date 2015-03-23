@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://sunsite.ualberta.ca/pub/Mirror/lsof/lsof_4.87.tar.bz2"
+MD5SUMLIST="80e2a76d0e05826db910ec88e631296c"
+REQUIRES="libtirpc"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xf lsof_4.87_src.tar
+cd lsof_4.87_src
+./Configure -n linux
+make CFGL="-L./lib -ltirpc"
+
+install -v -m0755 -o root -g root lsof ${FAKEROOT}/usr/bin
+install -v lsof.8 ${FAKEROOT}/usr/share/man/man8
+
+#################
+} # END OF FILE #
+#################
+

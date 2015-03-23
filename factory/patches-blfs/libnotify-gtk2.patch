@@ -1,0 +1,23 @@
+diff -rupN old/BOOK/x/lib/libnotify.xml new/BOOK/x/lib/libnotify.xml
+--- old/BOOK/x/lib/libnotify.xml	2014-02-22 16:06:53.000000000 +0100
++++ new/BOOK/x/lib/libnotify.xml	2014-07-27 10:57:06.951199704 +0200
+@@ -77,7 +77,7 @@
+ 
+     <bridgehead renderas="sect4">Required</bridgehead>
+     <para role="required">
+-      <xref linkend="gtk3"/>
++      <xref linkend="gtk2"/>  <!-- (*) Build against gtk+2 -->
+     </para>
+ 
+     <bridgehead renderas="sect4">Optional (Required if building GNOME)</bridgehead>
+@@ -116,6 +116,10 @@
+       commands:
+     </para>
+ 
++<screen><userinput># (*) Build against gtk+2
++sed -e 's/2.90/2.24/' -e 's/gtk+-3.0/gtk+-2.0/' -i configure.ac
++autoreconf -fi</userinput></screen>
++
+ <screen><userinput>./configure --prefix=/usr --disable-static &amp;&amp;
+ make</userinput></screen>
+ 

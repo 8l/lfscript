@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://lfscript.org/sources/btrfs-progs_20140613.tar.xz"
+MD5SUMLIST="b48fe5f7855a05f8d670f543171b9629"
+REQUIRES="asciidoc lzo xmlto"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+make
+
+make DESTDIR=${FAKEROOT} prefix=/usr install
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://sourceforge.net/projects/procps-ng/files/Production/procps-ng-3.3.9.tar.xz"
+MD5SUMLIST="0980646fa25e0be58f7afb6b98f79d74"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr                           \
+            --exec-prefix=                          \
+            --libdir=/usr/lib                       \
+            --docdir=/usr/share/doc/procps-ng-3.3.9 \
+            --disable-static                        \
+            --disable-kill
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+mv -v ${FAKEROOT}/usr/bin/pidof ${FAKEROOT}/bin
+mv -v ${FAKEROOT}/usr/lib/libprocps.so.* ${FAKEROOT}/lib
+ln -sfv ../../lib/$(readlink ${FAKEROOT}/usr/lib/libprocps.so) ${FAKEROOT}/usr/lib/libprocps.so
+
+#################
+} # END OF FILE #
+#################
+

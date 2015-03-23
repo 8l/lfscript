@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://download.gimp.org/pub/gimp/v2.8/gimp-2.8.10.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/gimp-2.8.10-device_info-1.patch
+          http://www.linuxfromscratch.org/patches/blfs/svn/gimp-2.8.10-freetype-1.patch"
+MD5SUMLIST="84c964aab7044489af69f7319bb59b47
+            dontverify
+            dontverify"
+REQUIRES="gegl gtk+2"
+POSTINST="true"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../gimp-2.8.10-device_info-1.patch
+
+patch -Np1 -i ../gimp-2.8.10-freetype-1.patch
+./configure --prefix=/usr --sysconfdir=/etc --without-gvfs
+make
+
+make DESTDIR=${FAKEROOT} install
+
+ALL_LINGUAS="ca da de el en en_GB es fr it ja ko nl nn pt_BR ru sl sv zh_CN" \
+./configure --prefix=/usr
+
+make
+
+make DESTDIR=${FAKEROOT} install
+chown -R root:root ${FAKEROOT}/usr/share/gimp/2.0/help
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+gtk-update-icon-cache
+update-desktop-database
+
+echo '(web-browser "<browser> %s")' >> /etc/gimp/2.0/gimprc
+
+#################
+} # END OF FILE #
+#################
+

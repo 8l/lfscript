@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://tukaani.org/xz/xz-5.0.5.tar.xz"
+MD5SUMLIST="aa17280f4521dbeebed0fbd11cd7fa30"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --docdir=/usr/share/doc/xz-5.0.5
+
+make
+
+make DESTDIR=${FAKEROOT} install
+mv -v   ${FAKEROOT}/usr/bin/{lzma,unlzma,lzcat,xz,unxz,xzcat} ${FAKEROOT}/bin
+mv -v ${FAKEROOT}/usr/lib/liblzma.so.* ${FAKEROOT}/lib
+ln -svf ../../lib/$(readlink ${FAKEROOT}/usr/lib/liblzma.so) ${FAKEROOT}/usr/lib/liblzma.so
+
+######################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+######################################################
+
+./configure --prefix=/tools
+
+make
+
+make install
+
+#################
+} # END OF FILE #
+#################
+

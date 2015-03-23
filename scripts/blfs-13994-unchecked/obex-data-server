@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://tadas.dailyda.com/software/obex-data-server-0.4.6.tar.gz
+          http://www.linuxfromscratch.org/patches/blfs/svn/obex-data-server-0.4.6-build-fixes-1.patch"
+MD5SUMLIST="961ca5db6fe9c97024e133cc6203cc4d
+            dontverify"
+REQUIRES="bluez dbus-glib gdk-pixbuf imagemagick libusb-compat openobex"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../obex-data-server-0.4.6-build-fixes-1.patch
+
+./configure --prefix=/usr --sysconfdir=/etc
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

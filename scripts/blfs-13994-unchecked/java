@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="___PRIMARY_SOURCE_NOT_FOUND___"
+MD5SUMLIST="___PRIMARY_MD5_NOT_FOUND___"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+install -vdm755 ${FAKEROOT}/opt/OpenJDK-1.7.0.65-bin
+mv -v * ${FAKEROOT}/opt/OpenJDK-1.7.0.65-bin
+chown -R root:root ${FAKEROOT}/opt/OpenJDK-1.7.0.65-bin
+
+export CLASSPATH=.:/usr/share/java
+export JAVA_HOME=/opt/OpenJDK-1.7.0.65-bin
+export PATH="$PATH:/opt/OpenJDK-1.7.0.65-bin/bin"
+
+#################
+} # END OF FILE #
+#################
+

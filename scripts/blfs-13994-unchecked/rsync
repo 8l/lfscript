@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://samba.org/ftp/rsync/src/rsync-3.1.1.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="43bd6676f0b404326eee2d63be3cdcfe
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+TAGS="preinst"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --without-included-zlib
+make
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -m755 -d          ${FAKEROOT}/usr/share/doc/rsync-3.1.1/api
+install -v -m644 dox/html/*  ${FAKEROOT}/usr/share/doc/rsync-3.1.1/api
+
+cat > ${FAKEROOT}/etc/rsyncd.conf << "EOF"
+# This is a basic rsync configuration file
+# It exports a single module without user authentication.
+
+motd file = /home/rsync/welcome.msg
+use chroot = yes
+
+[localhost]
+    path = /home/rsync
+    comment = Default rsync module
+    read only = yes
+    list = yes
+    uid = rsyncd
+    gid = rsyncd
+
+EOF
+
+includeBootscript rsyncd
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 48 rsyncd
+useradd -c "rsyncd Daemon" -d /home/rsync -g rsyncd \
+    -s /bin/false -u 48 rsyncd
+
+#################
+} # END OF FILE #
+#################
+

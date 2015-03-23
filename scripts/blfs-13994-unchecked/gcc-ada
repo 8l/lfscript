@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/gnu/gcc/gcc-4.9.1/gcc-4.9.1.tar.bz2"
+MD5SUMLIST="fddf71348546af523353bd43d34919c1"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+make DESTDIR=${FAKEROOT} ins-all prefix=/opt/gnat
+
+PATH_HOLD=$PATH
+export PATH=/opt/gnat/bin:$PATH_HOLD
+
+find ${FAKEROOT}/opt/gnat -name ld -exec mv -v {} {}.old \;
+find ${FAKEROOT}/opt/gnat -name as -exec mv -v {} {}.old \;
+
+#################
+} # END OF FILE #
+#################
+

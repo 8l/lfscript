@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+REQUIRES="caja libmatekbd libmateweather marco mate-backgrounds mate-common mate-control-center mate-desktop mate-dialogs mate-icon-theme mate-menus mate-notification-daemon mate-panel mate-polkit mate-session-manager mate-settings-daemon mate-themes"
+TAGS="group"
+

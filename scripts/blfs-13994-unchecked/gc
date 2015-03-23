@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.hboehm.info/gc/gc_source/gc-7.4.2.tar.gz"
+MD5SUMLIST="12c05fd2811d989341d8c6d81f66af87"
+REQUIRES="libatomic_ops"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's#pkgdata#doc#' doc/doc.am
+autoreconf -fi
+./configure --prefix=/usr      \
+            --enable-cplusplus \
+            --disable-static   \
+            --docdir=/usr/share/doc/gc-7.4.2
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m644 doc/gc.man ${FAKEROOT}/usr/share/man/man3/gc_malloc.3
+ln -sfv gc_malloc.3 ${FAKEROOT}/usr/share/man/man3/gc.3 
+
+#################
+} # END OF FILE #
+#################
+

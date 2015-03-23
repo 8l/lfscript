@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://archive.xfce.org/src/xfce/xfce4-power-manager/1.2/xfce4-power-manager-1.2.0.tar.bz2"
+MD5SUMLIST="935599b7114b0a4b0e2c9a5d6c72524c"
+REQUIRES="libnotify upower xfce4-panel"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --sysconfdir=/etc
+make
+
+make DESTDIR=${FAKEROOT} docdir=/usr/share/doc/xfce4-power-manager-1.2.0 \
+     imagesdir=/usr/share/doc/xfce4-power-manager-1.2.0/images install
+
+#################
+} # END OF FILE #
+#################
+

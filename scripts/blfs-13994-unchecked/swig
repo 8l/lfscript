@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/swig/swig-3.0.2.tar.gz"
+MD5SUMLIST="62f9b0d010cef36a13a010dc530d0d41"
+REQUIRES="pcre"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/swig-3.0.2
+cp -v -R Doc/* ${FAKEROOT}/usr/share/doc/swig-3.0.2
+
+#################
+} # END OF FILE #
+#################
+

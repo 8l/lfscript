@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/docbook/docbook-xsl-1.78.1.tar.bz2
+          http://downloads.sourceforge.net/docbook/docbook-xsl-doc-1.78.1.tar.bz2"
+MD5SUMLIST="6dd0f89131cc35bf4f2ed105a1c17771
+            77b63a06db2db2b692dcb96c2c64dc45"
+REQUIRES="libxml2"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xf ../docbook-xsl-doc-1.78.1.tar.bz2 --strip-components=1
+
+install -v -m755 -d ${FAKEROOT}/usr/share/xml/docbook/xsl-stylesheets-1.78.1
+
+cp -v -R VERSION common eclipse epub extensions fo highlighting html \
+         htmlhelp images javahelp lib manpages params profiling \
+         roundtrip slides template tests tools webhelp website \
+         xhtml xhtml-1_1 \
+    ${FAKEROOT}/usr/share/xml/docbook/xsl-stylesheets-1.78.1
+
+ln -s VERSION ${FAKEROOT}/usr/share/xml/docbook/xsl-stylesheets-1.78.1/VERSION.xsl
+
+install -v -m644 -D README \
+                    ${FAKEROOT}/usr/share/doc/docbook-xsl-1.78.1/README.txt
+install -v -m644    RELEASE-NOTES* NEWS* \
+                    ${FAKEROOT}/usr/share/doc/docbook-xsl-1.78.1
+
+cp -v -R doc/* ${FAKEROOT}/usr/share/doc/docbook-xsl-1.78.1
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+if [ ! -d /etc/xml ]; then install -v -m755 -d /etc/xml; fi
+if [ ! -f /etc/xml/catalog ]; then
+    xmlcatalog --noout --create /etc/xml/catalog
+fi
+
+xmlcatalog --noout --add "rewriteSystem" \
+           "http://docbook.sourceforge.net/release/xsl/1.78.1" \
+           "/usr/share/xml/docbook/xsl-stylesheets-1.78.1" \
+    /etc/xml/catalog
+
+xmlcatalog --noout --add "rewriteURI" \
+           "http://docbook.sourceforge.net/release/xsl/1.78.1" \
+           "/usr/share/xml/docbook/xsl-stylesheets-1.78.1" \
+    /etc/xml/catalog
+
+xmlcatalog --noout --add "rewriteSystem" \
+           "http://docbook.sourceforge.net/release/xsl/current" \
+           "/usr/share/xml/docbook/xsl-stylesheets-1.78.1" \
+    /etc/xml/catalog
+
+xmlcatalog --noout --add "rewriteURI" \
+           "http://docbook.sourceforge.net/release/xsl/current" \
+           "/usr/share/xml/docbook/xsl-stylesheets-1.78.1" \
+    /etc/xml/catalog
+
+# (*) Example configuration
+#xmlcatalog --noout --add "rewriteSystem" \
+#           "http://docbook.sourceforge.net/release/xsl/<version>" \
+#           "/usr/share/xml/docbook/xsl-stylesheets-<version>" \
+#    /etc/xml/catalog
+#
+#xmlcatalog --noout --add "rewriteURI" \
+#           "http://docbook.sourceforge.net/release/xsl/<version>" \
+#           "/usr/share/xml/docbook/xsl-stylesheets-<version>" \
+#    /etc/xml/catalog
+
+#################
+} # END OF FILE #
+#################
+

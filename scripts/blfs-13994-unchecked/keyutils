@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://people.redhat.com/~dhowells/keyutils/keyutils-1.5.9.tar.bz2"
+MD5SUMLIST="7f8ac985c45086b5fbcd12cecd23cf07"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+make
+
+make DESTDIR=${FAKEROOT} NO_ARLIB=1 install
+
+#################
+} # END OF FILE #
+#################
+

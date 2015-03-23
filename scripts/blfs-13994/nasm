@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.nasm.us/pub/nasm/releasebuilds/2.11.05/nasm-2.11.05.tar.xz
+          http://www.nasm.us/pub/nasm/releasebuilds/2.11.05/nasm-2.11.05-xdoc.tar.xz"
+MD5SUMLIST="3544d7068206b583915394693c0e933c
+            356655aede228a6fccba092e9f8e507e"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xf ../nasm-2.11.05-xdoc.tar.xz --strip-components=1
+
+./configure --prefix=/usr
+make
+
+make INSTALLROOT=${FAKEROOT} install
+
+install -m755 -d         ${FAKEROOT}/usr/share/doc/nasm-2.11.05/html
+cp -v doc/html/*.html    ${FAKEROOT}/usr/share/doc/nasm-2.11.05/html
+cp -v doc/*.{txt,ps,pdf} ${FAKEROOT}/usr/share/doc/nasm-2.11.05
+cp -v doc/info/*         ${FAKEROOT}/usr/share/info
+install-info ${FAKEROOT}/usr/share/info/nasm.info ${FAKEROOT}/usr/share/info/dir
+
+#################
+} # END OF FILE #
+#################
+

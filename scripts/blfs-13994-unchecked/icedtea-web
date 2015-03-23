@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://icedtea.classpath.org/download/source/icedtea-web-1.5.tar.gz"
+MD5SUMLIST="a6199869763291879f3a7382b114974c"
+REQUIRES="openjdk xulrunner"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=${JAVA_HOME}/jre    \
+            --with-jdk-home=${JAVA_HOME} \
+            --disable-docs               \
+            --mandir=${JAVA_HOME}/man
+make
+
+make DESTDIR=${FAKEROOT} install
+mandb -c ${FAKEROOT}/opt/jdk/man
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+ln -s ${JAVA_HOME}/jre/lib/IcedTeaPlugin.so /usr/lib/mozilla/plugins/
+
+#################
+} # END OF FILE #
+#################
+

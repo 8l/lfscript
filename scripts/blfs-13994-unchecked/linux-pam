@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://linux-pam.org/library/Linux-PAM-1.1.8.tar.bz2
+          http://linux-pam.org/documentation/Linux-PAM-1.1.8-docs.tar.bz2"
+MD5SUMLIST="35b6091af95981b1b2cd60d813b5e4ee
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xf ../Linux-PAM-1.1.8-docs.tar.bz2 --strip-components=1
+
+./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --libdir=/usr/lib \
+            --enable-securedir=/lib/security \
+            --docdir=/usr/share/doc/Linux-PAM-1.1.8
+make
+
+install -v -m755 -d ${FAKEROOT}/etc/pam.d
+
+cat > ${FAKEROOT}/etc/pam.d/other << "EOF"
+auth     required       pam_deny.so
+account  required       pam_deny.so
+password required       pam_deny.so
+session  required       pam_deny.so
+EOF
+
+rm -rfv ${FAKEROOT}/etc/pam.d
+
+make DESTDIR=${FAKEROOT} install
+chmod -v 4755 ${FAKEROOT}/sbin/unix_chkpwd
+
+for file in pam pam_misc pamc
+do
+  mv -v ${FAKEROOT}/usr/lib/lib${file}.so.* ${FAKEROOT}/lib
+  ln -sfv ../../lib/$(readlink ${FAKEROOT}/usr/lib/lib${file}.so) ${FAKEROOT}/usr/lib/lib${file}.so
+done
+
+#################
+} # END OF FILE #
+#################
+

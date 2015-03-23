@@ -1,0 +1,111 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://wiki.qemu.org/download/qemu-2.1.0.tar.bz2"
+MD5SUMLIST="6726977292b448cbc7f89998fac6983b"
+REQUIRES="glib2 python2 xorg"
+TAGS="preinst"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -e '/#include <sys\/capability.h>/ d' \
+    -e '/#include "virtio-9p-marshal.h"/ i#include <sys\/capability.h>' \
+    -i fsdev/virtfs-proxy-helper.c
+
+./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --docdir=/usr/share/doc/qemu-2.1.0 \
+            --target-list=x86_64-softmmu
+make
+
+make DESTDIR=${FAKEROOT} install
+[ -e  ${FAKEROOT}/usr/lib/libcacard.so ] && chmod -v 755 ${FAKEROOT}/usr/lib/libcacard.so
+
+usermod -a -G kvm <username>
+
+cat > ${FAKEROOT}/lib/udev/rules.d/65-kvm.rules << "EOF"
+KERNEL=="kvm", GROUP="kvm", MODE="0660"
+EOF
+
+ln -sv qemu-system-x86_64 ${FAKEROOT}/usr/bin/qemu
+
+cat >> ${FAKEROOT}/etc/sysctl.conf << EOF
+net.ipv4.ip_forward=1
+EOF
+
+cat > ${FAKEROOT}/etc/qemu-ifup << EOF
+#!/bin/bash
+
+switch=br0
+
+if [ -n "\$1" ]; then
+  # Add new tap0 interface to bridge
+  ${FAKEROOT}/sbin/ip link set \$1 up
+  sleep 0.5s
+  ${FAKEROOT}/usr/sbin/brctl addif \$switch \$1
+else
+  echo "Error: no interface specified"
+  exit 1
+fi
+
+exit 0
+EOF
+
+chmod +x ${FAKEROOT}/etc/qemu-ifup
+
+cat > ${FAKEROOT}/etc/qemu-ifdown << EOF
+#!/bin/bash
+
+switch=br0
+
+if [ -n "\$1" ]; then
+  # Remove tap0 interface from bridge
+  ${FAKEROOT}/usr/sbin/brctl delif \$switch \$1
+else
+  echo "Error: no interface specified"
+  exit 1
+fi
+
+exit 0
+EOF
+
+chmod +x ${FAKEROOT}/etc/qemu-ifdown
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 61 kvm
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+qemu-img create -f qcow2 vdisk.img 10G
+
+qemu
+
+qemu
+
+qemu -enable-kvm -hda vdisk.img            \
+     -cdrom Fedora-16-x86_64-Live-LXDE.iso \
+     -boot d                               \
+     -m 384
+
+qemu -enable-kvm vdisk.img -m 384
+
+sysctl -w net.ipv4.ip_forward=1
+
+#################
+} # END OF FILE #
+#################
+

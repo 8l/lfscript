@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://dist.schmorp.de/rxvt-unicode/Attic/rxvt-unicode-9.20.tar.bz2"
+MD5SUMLIST="4a5b823f08d21036f94a6c51e94d025b"
+REQUIRES="xorg"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --enable-everything
+make
+
+make DESTDIR=${FAKEROOT} install
+
+cat >> ${FAKEROOT}/etc/X11/app-defaults/URxvt << "EOF"
+URxvt*perl-ext: matcher
+URxvt*urlLauncher: firefox
+URxvt.background: black
+URxvt.foreground: yellow
+URxvt*font: xft:Monospace:pixelsize=12
+EOF
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+# Start the urxvtd daemon
+urxvtd -q -f -o &
+
+#################
+} # END OF FILE #
+#################
+

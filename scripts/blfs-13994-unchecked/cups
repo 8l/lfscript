@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.cups.org/software/1.7.5/cups-1.7.5-source.tar.bz2
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/cups-1.7.5-blfs-1.patch
+          http://www.linuxfromscratch.org/patches/blfs/svn/cups-1.7.5-content_type-1.patch"
+MD5SUMLIST="5d893edc2957005f78e2b2423fdace2e
+            179a6c22d0f7d2619cba4eb794fdc1cb
+            dontverify
+            dontverify"
+TAGS="preinst"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+useradd -c "Print Service User" -d ${FAKEROOT}/var/spool/cups -g lp -s ${FAKEROOT}/bin/false -u 9 lp
+
+usermod -a -G lpadmin <username>
+
+sed -i 's#@CUPS_HTMLVIEW@#firefox#' desktop/cups.desktop.in
+
+patch -Np1 -i ../cups-1.7.5-content_type-1.patch
+
+patch -Np1 -i ../cups-1.7.5-blfs-1.patch
+aclocal -I config-scripts
+autoconf -I config-scripts
+
+CC=gcc \
+./configure --libdir=/usr/lib                 \
+            --with-rcdir=/tmp/cupsinit        \
+            --with-docdir=/usr/share/cups/doc \
+            --with-system-groups=lpadmin
+make
+
+make DESTDIR=${FAKEROOT} install
+rm -rf ${FAKEROOT}/tmp/cupsinit
+ln -svfn ../cups/doc ${FAKEROOT}/usr/share/doc/cups-1.7.5
+
+echo "ServerName ${FAKEROOT}/var/run/cups/cups.sock" > ${FAKEROOT}/etc/cups/client.conf
+
+rm -rf ${FAKEROOT}/usr/share/cups/banners
+rm -rf ${FAKEROOT}/usr/share/cups/data/testprint
+
+includeBootscript cups
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 19 lpadmin
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+gtk-update-icon-cache
+
+#################
+} # END OF FILE #
+#################
+

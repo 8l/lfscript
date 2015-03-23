@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-6.6p1.tar.gz"
+MD5SUMLIST="3e9800e6bca1fbac0eea4d41baa7f239"
+REQUIRES="gtk+2 sudo x7lib xorg"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cd contrib
+make gnome-ssh-askpass2
+
+install -v -d -m755                  ${FAKEROOT}/usr/libexec/openssh/contrib
+install -v -m755  gnome-ssh-askpass2 ${FAKEROOT}/usr/libexec/openssh/contrib
+ln -sv -f contrib/gnome-ssh-askpass2 ${FAKEROOT}/usr/libexec/openssh/ssh-askpass
+
+cat >> ${FAKEROOT}/etc/sudo.conf << "EOF"
+# Path to askpass helper program
+Path askpass /usr/libexec/openssh/ssh-askpass
+EOF
+chmod -v 0644 ${FAKEROOT}/etc/sudo.conf
+
+#################
+} # END OF FILE #
+#################
+

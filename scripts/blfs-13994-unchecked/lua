@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.lua.org/ftp/lua-5.2.3.tar.gz
+          http://www.linuxfromscratch.org/patches/blfs/svn/lua-5.2.3-shared_library-1.patch"
+MD5SUMLIST="dc7f94ec6ff15c985d2d6ad0f1b35654
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../lua-5.2.3-shared_library-1.patch
+sed -i '/#define LUA_ROOT/s:/usr/local/:/usr/:' src/luaconf.h
+make linux
+
+make DESTDIR=${FAKEROOT} INSTALL_TOP=/usr TO_LIB="liblua.so liblua.so.5.2 liblua.so.5.2.3" \
+     INSTALL_DATA="cp -d" INSTALL_MAN=/usr/share/man/man1 install
+mkdir -pv ${FAKEROOT}/usr/share/doc/lua-5.2.3
+cp -v doc/*.{html,css,gif,png} ${FAKEROOT}/usr/share/doc/lua-5.2.3
+
+cat > ${FAKEROOT}/usr/lib/pkgconfig/lua.pc << "EOF"
+V=5.2
+R=5.2.3
+
+prefix=/usr
+INSTALL_BIN=${prefix}/bin
+INSTALL_INC=${prefix}/include
+INSTALL_LIB=${prefix}/lib
+INSTALL_MAN=${prefix}/man/man1
+INSTALL_LMOD=${prefix}/share/lua/${V}
+INSTALL_CMOD=${prefix}/lib/lua/${V}
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Lua
+Description: An Extensible Extension Language
+Version: ${R}
+Requires: 
+Libs: -L${libdir} -llua -lm
+Cflags: -I${includedir}
+EOF
+
+#################
+} # END OF FILE #
+#################
+

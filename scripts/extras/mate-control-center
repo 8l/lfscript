@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/mate-control-center-1.8.2.tar.xz"
+MD5SUMLIST="d6c98a8b230090e4728853f07efcb558"
+REQUIRES="desktop-file-utils libunique marco mate-menus mate-settings-daemon shared-mime-info"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --libexecdir=/usr/lib/mate-control-center \
+        --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

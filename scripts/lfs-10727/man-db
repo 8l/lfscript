@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://download.savannah.gnu.org/releases/man-db/man-db-2.6.7.1.tar.xz"
+MD5SUMLIST="ce7b697f8e8016a085d9f5975ae6c4fb"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr                          \
+            --docdir=/usr/share/doc/man-db-2.6.7.1 \
+            --sysconfdir=/etc                      \
+            --disable-setuid                       \
+            --with-browser=/usr/bin/lynx           \
+            --with-vgrind=/usr/bin/vgrind          \
+            --with-grap=/usr/bin/grap
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/marco-1.8.1.tar.xz"
+MD5SUMLIST="453245abd553594c9c5e5d7dd037b498"
+REQUIRES="libcanberra mate-dialogs"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --libexecdir=/usr/lib/marco \
+        --localstatedir=/var \
+        --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/marco
+install -v -m644 README rationales.txt doc/*.txt \
+        ${FAKEROOT}/usr/share/doc/marco
+
+cat > ${FAKEROOT}/etc/alternatives/xinitrc/marco.xinitrc << "EOF"
+xterm &
+exec marco
+EOF
+
+#################
+} # END OF FILE #
+#################
+

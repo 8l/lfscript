@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/libmateweather-1.8.0.tar.xz"
+MD5SUMLIST="f11f7f3c6ae72e58b54931cb09bb76a7"
+REQUIRES="gtk+2 gtk-doc libsoup mate-common"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed 's/g_memmove/memmove/g' -i libmateweather/weather.c
+
+./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --disable-static \
+        --enable-locations-compression
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

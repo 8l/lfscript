@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-2.0.26.tar.bz2"
+MD5SUMLIST="fa7e704aad33eb114d1840164455aec1"
+REQUIRES="libassuan libgcrypt libksba pth"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --enable-symcryptrun \
+            --docdir=/usr/share/doc/gnupg-2.0.26
+make
+
+makeinfo --html --no-split -o doc/gnupg_nochunks.html doc/gnupg.texi
+makeinfo --plaintext       -o doc/gnupg.txt           doc/gnupg.texi
+
+make -C doc pdf ps html
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/gnupg-2.0.26/html
+install -v -m644    doc/gnupg_nochunks.html \
+                    ${FAKEROOT}/usr/share/doc/gnupg-2.0.26/gnupg.html
+install -v -m644    doc/*.texi doc/gnupg.txt \
+                    ${FAKEROOT}/usr/share/doc/gnupg-2.0.26
+
+for f in gpg gpgv
+do
+  ln -svf ${f}2.1 ${FAKEROOT}/usr/share/man/man1/$f.1
+  ln -svf ${f}2   ${FAKEROOT}/usr/bin/$f
+done
+unset f
+
+install -v -m644 doc/gnupg.html/* \
+                 ${FAKEROOT}/usr/share/doc/gnupg-2.0.26/html
+install -v -m644 doc/gnupg.{pdf,dvi,ps} \
+                 ${FAKEROOT}/usr/share/doc/gnupg-2.0.26
+
+#################
+} # END OF FILE #
+#################
+

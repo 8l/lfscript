@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.at.gnucash.org/pub/infosys/mail/fetchmail/fetchmail-6.3.26.tar.xz"
+MD5SUMLIST="61b66faad044afa26e142bb1791aa2b3"
+REQUIRES="openssl procmail"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --with-ssl --enable-fallback=procmail
+make
+
+make DESTDIR=${FAKEROOT} install
+
+cat > ${FAKEROOT}/etc/skel/.fetchmailrc << "EOF"
+set logfile /var/log/fetchmail.log
+set no bouncemail
+set postmaster root
+
+poll SERVERNAME :
+    user <username> pass <password>;
+    mda "/usr/bin/procmail -f %F -d %T";
+EOF
+
+chmod -v 0600 ${FAKEROOT}/etc/skel/.fetchmailrc
+
+#################
+} # END OF FILE #
+#################
+

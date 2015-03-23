@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/pub/gnu/cpio/cpio-2.11.tar.bz2"
+MD5SUMLIST="20fc912915c629e809f80b96b2e75d7d"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i -e '/gets is a/d' gnu/stdio.in.h
+./configure --prefix=/usr \
+            --bindir=/bin \
+            --enable-mt   \
+            --with-rmt=/usr/libexec/rmt
+make
+makeinfo --html            -o doc/html      doc/cpio.texi
+makeinfo --html --no-split -o doc/cpio.html doc/cpio.texi
+makeinfo --plaintext       -o doc/cpio.txt  doc/cpio.texi
+
+make -C doc pdf
+make -C doc ps
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/cpio-2.11/html
+install -v -m644    doc/html/* \
+                    ${FAKEROOT}/usr/share/doc/cpio-2.11/html
+install -v -m644    doc/cpio.{html,txt} \
+                    ${FAKEROOT}/usr/share/doc/cpio-2.11
+
+install -v -m644 doc/cpio.{pdf,ps,dvi} \
+                 ${FAKEROOT}/usr/share/doc/cpio-2.11
+
+#################
+} # END OF FILE #
+#################
+

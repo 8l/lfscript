@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.mutt.org/mutt/mutt-1.5.23.tar.gz"
+MD5SUMLIST="11f5b6a3eeba1afa1257fe93c9f26bff"
+TAGS="preinst"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+chgrp -v mail ${FAKEROOT}/var/mail
+
+./configure --prefix=/usr --sysconfdir=/etc \
+            --with-docdir=/usr/share/doc/mutt-1.5.23 \
+            --enable-pop --enable-imap \
+            --enable-hcache --without-qdbm \
+            --without-tokyocabinet \
+            --with-gdbm --without-bdb
+make
+
+make -C doc manual.pdf
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -m644 doc/manual.{pdf,tex} \
+    ${FAKEROOT}/usr/share/doc/mutt-1.5.23
+
+cat ${FAKEROOT}/usr/share/doc/mutt-1.5.23/samples/gpg.rc >> ${FAKEROOT}/etc/skel/.muttrc
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 34 mail
+
+#################
+} # END OF FILE #
+#################
+

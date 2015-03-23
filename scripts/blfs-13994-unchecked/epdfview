@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://anduin.linuxfromscratch.org/sources/BLFS/conglomeration/epdfview/epdfview-0.1.8.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/epdfview-0.1.8-fixes-1.patch"
+MD5SUMLIST="e50285b01612169b2594fea375f53ae4
+            dontverify"
+REQUIRES="gtk+2 poppler"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../epdfview-0.1.8-fixes-1.patch
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

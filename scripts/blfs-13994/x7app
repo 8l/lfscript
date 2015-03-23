@@ -1,0 +1,131 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://xorg.freedesktop.org/releases/individual/app/bdftopcf-1.0.4.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/iceauth-1.0.6.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/luit-1.1.1.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/mkfontdir-1.0.7.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/mkfontscale-1.1.1.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/sessreg-1.0.8.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/setxkbmap-1.3.0.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/smproxy-1.0.5.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/x11perf-1.5.4.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xauth-1.0.9.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xbacklight-1.2.1.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xcmsdb-1.0.4.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xcursorgen-1.0.6.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xdpyinfo-1.3.1.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xdriinfo-1.0.4.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xev-1.2.1.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xgamma-1.0.5.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xhost-1.0.6.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xinput-1.6.1.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xkbcomp-1.2.4.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xkbevd-1.1.3.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xkbutils-1.0.4.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xkill-1.0.4.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xlsatoms-1.1.1.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xlsclients-1.1.3.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xmessage-1.0.4.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xmodmap-1.0.8.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xpr-1.0.4.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xprop-1.2.2.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xrandr-1.4.3.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xrdb-1.1.0.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xrefresh-1.0.5.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xset-1.2.3.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xsetroot-1.1.1.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xvinfo-1.1.2.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xwd-1.0.6.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xwininfo-1.1.3.tar.bz2
+          http://xorg.freedesktop.org/releases/individual/app/xwud-1.0.4.tar.bz2"
+MD5SUMLIST="96a648a332160a7482885800f7a506fa
+            2527344acc60741a709f4858564c5ae6
+            c4a3664e08e5a47c120ff9263ee2f20c
+            18c429148c96c2079edda922a2b67632
+            03de3f15db678e277f5ef9c013aca1ad
+            f548e389ff68424947b87785df6a321b
+            1001771344608e120e943a396317c33a
+            edce41bd7562dcdfb813e05dbeede8ac
+            5c3c7431a38775caaea6051312a49bc9
+            7d6003f32838d5b688e2c8a131083271
+            0066f23f69ca3ef62dcaeb74a87fdc48
+            5812be48cbbec1068e7b718eec801766
+            b58a87e6cd7145c70346adad551dba48
+            cacc0733f16e4f2a97a5c430fcc4420e
+            3d3cad4d754e10e325438193433d59fd
+            5b0a0b6f589441d546da21739fa75634
+            c06067f572bc4a5298f324f27340da95
+            f1669af1fe0554e876f03319c678e79d
+            305980ac78a6954e306a14d80a54c441
+            a0fc1ac3fc4fe479ade09674347c5aa0
+            37ed71525c63a9acd42e7cde211dcc5b
+            502b14843f610af977dffc6cbf2102d5
+            0ae6bc2a8d3af68e9c76b1a6ca5f7a78
+            9d0e16d116d1c89e6b668c1b2672eb57
+            9fbf6b174a5138a61738a42e707ad8f5
+            2dd5ae46fa18abc9331bc26250a25005
+            5511da3361eea4eaa21427652c559e1c
+            6101f04731ffd40803df80eca274ec4b
+            fae3d2fda07684027a643ca783d595cc
+            441fdb98d2abc6051108b7075d948fc7
+            b54c7e3e53b4f332d41ed435433fbda0
+            a896382bc53ef3e149eaf9b13bc81d42
+            dcd227388b57487d543cab2fd7a602d7
+            7211b31ec70631829ebae9460999aa0b
+            1fbd65e81323a8c0a4b5e24db0058405
+            6b5d48464c5f366e91efd08b62b12d94
+            b777bafb674555e48fd8437618270931
+            3025b152b4f13fdffd0c46d0be587be6"
+REQUIRES="libpng mesalib xbitmaps xcb-util xorg-env"
+TAGS="multi"
+POSTINST="true"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+case $(basename "$PWD") in
+  luit-[0-9]* )
+    line1="#ifdef _XOPEN_SOURCE"
+    line2="#  undef _XOPEN_SOURCE"
+    line3="#  define _XOPEN_SOURCE 600"
+    line4="#endif"
+
+    sed -i -e "s@#ifdef HAVE_CONFIG_H@$line1\n$line2\n$line3\n$line4\n\n&@" sys.c
+    unset line1 line2 line3 line4
+  ;;
+esac
+./configure $XORG_CONFIG
+make
+
+make DESTDIR=${FAKEROOT} install
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+# (*) Properly register all installed fonts for X11
+mkdir -p /usr/share/fonts/X11
+pushd /usr/share/fonts/X11
+for dir in $(ls); do
+    pushd ${dir}
+
+    rm -f fonts.scale fonts.dir
+    mkfontscale
+    mkfontdir
+
+    popd
+done
+popd
+
+#################
+} # END OF FILE #
+#################
+

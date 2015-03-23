@@ -1,0 +1,66 @@
+In order to remove the need to install a Java Virtual Machine and a large class
+library to be able to run LFClass (both on the host system and on the client
+system that you are building with LFScript), a small virtual machine called
+"Avian" has been precompiled and distributed with LFClass for 32-bit and 64-bit
+Intel CPU architectures.
+
+The 'build.sh' script can create two types of binaries; 'vm-<arch>' contains a
+generic copy of Avian and can also be used to launch Java programs beyond
+LFClass. 'lfclass-<arch>' also has LFClass embedded and therefore behaves like
+a normal application (and can not be used to launch other Java programs).
+
+This document contains a list of the applications used to create these binary
+files and the Open Source licenses which therefore apply to them.
+
+Note that the source code of LFClass itself is only MIT (Expat) licensed.
+The other licenses described in this document only apply to the precompiled
+binary executable file (and also NOT to the *.jar file).
+
+
+Programs embedded in the excutable file:
+----------------------------------------
+* Avian: A lightweight alternative to Java
+  Copyright (c) 2008-2011, Avian Contributors
+  Licensed under the ISC License (see below)
+  [Virtual Machine and class library]
+
+* UPX: The Ultimate Packer for eXecutables
+  Copyright (c) 1996-2000 Markus Oberhumer & Laszlo Molnar
+  Licensed under the GNU GPL with a special exception (see below)
+  [Used to compress the binary file]
+
+(If LFClass has been embedded in the VM, the "MIT (expat) Licence" also
+applies to the binary file.)
+
+
+The ISC License
+---------------
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+
+The UPX License Agreement (ABSTRACT)
+------------------------------------
+UPX and UCL are copyrighted software distributed under the terms of the GNU
+General Public License (hereinafter the "GPL").
+
+The stub which is imbedded in each UPX compressed program is part of UPX and
+UCL, and contains code that is under our copyright. The terms of the GNU
+General Public License still apply as compressing a program is a special form
+of linking with our stub.
+
+As a special exception we grant the free usage of UPX for all executables,
+including commercial programs.
+
+(See http://upx.sourceforge.net/upx-license.html for details
+ and http://www.opensource.org/licenses/gpl-2.0 for the GPL license)
+

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/Pyrex-0.9.9.tar.gz"
+MD5SUMLIST="dontverify"
+REQUIRES="python2"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+python setup.py install --root=${FAKEROOT}
+
+#################
+} # END OF FILE #
+#################
+

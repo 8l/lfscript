@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.unbound.net/downloads/unbound-1.4.22.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="59728c74fef8783f8bad1d7451eba97f
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+REQUIRES="ldns openssl"
+TAGS="preinst"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr     \
+            --sysconfdir=/etc \
+            --disable-static  \
+            --with-pidfile=/run/unbound.pid
+make
+
+make doc
+
+make DESTDIR=${FAKEROOT} install
+mv -v ${FAKEROOT}/usr/sbin/unbound-host ${FAKEROOT}/usr/bin/
+
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/unbound-1.4.22
+install -v -m644 doc/html/* ${FAKEROOT}/usr/share/doc/unbound-1.4.22
+
+includeBootscript unbound
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 88 unbound
+useradd -c "Unbound DNS resolver" -d /var/lib/unbound -u 88 \
+        -g unbound -s /bin/false unbound
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+echo "nameserver 127.0.0.1" > /etc/resolv.conf
+
+sed -i '/request /i\supersede domain-name-servers 127.0.0.1;' \
+       /etc/dhcp/dhclient.conf
+
+#################
+} # END OF FILE #
+#################
+

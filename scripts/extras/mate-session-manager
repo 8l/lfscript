@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/mate-session-manager-1.8.1.tar.xz"
+MD5SUMLIST="b19b9e585f7343e34bff9b58c4f1d963"
+REQUIRES="dbus-glib gtk+2 mate-common"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --libexecdir=/usr/lib/mate-session-manager \
+        --mandir=/usr/share/man \
+        --localstatedir=/var
+make
+
+make DESTDIR=${FAKEROOT} install
+
+echo "exec mate-session" \
+        > ${FAKEROOT}/etc/alternatives/xinitrc/Mate.xinitrc
+
+echo "exec ck-launch-session mate-session" \
+        > ${FAKEROOT}/etc/alternatives/xinitrc/Mate_ConsoleKit.xinitrc
+
+#################
+} # END OF FILE #
+#################
+

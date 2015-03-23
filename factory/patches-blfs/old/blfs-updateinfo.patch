@@ -1,0 +1,47 @@
+diff -rupN old//BOOK/general/prog/nasm.xml new//BOOK/general/prog/nasm.xml
+--- old//BOOK/general/prog/nasm.xml	2011-12-05 23:58:00.000000000 +0100
++++ new//BOOK/general/prog/nasm.xml	2012-01-10 19:10:26.999492001 +0100
+@@ -99,10 +99,9 @@ make</userinput></screen>
+ <screen role="root"><userinput>install -m755 -d         /usr/share/doc/nasm-&NASM-version;/html &amp;&amp; 
+ cp -v doc/html/*.html    /usr/share/doc/nasm-&NASM-version;/html &amp;&amp;
+ cp -v doc/*.{txt,ps,pdf} /usr/share/doc/nasm-&NASM-version;      &amp;&amp;
+-cp -v doc/info/*         /usr/share/info                  &amp;&amp;
+-pushd /usr/share/info                                     &amp;&amp;
+-install-info nasm.info dir                                &amp;&amp;
+-popd</userinput></screen>
++cp -v doc/info/*         /usr/share/info</userinput></screen>
++
++    &update-info-dir;
+ 
+ <!-- install_rdf &amp;&amp;
+ install -v -m755 -d /usr/share/doc/nasm-&NASM-version;/html &amp;&amp;
+diff -rupN old//BOOK/general/sysutils/gpm.xml new//BOOK/general/sysutils/gpm.xml
+--- old//BOOK/general/sysutils/gpm.xml	2011-12-29 06:13:05.000000000 +0100
++++ new//BOOK/general/sysutils/gpm.xml	2012-01-10 19:10:27.003492001 +0100
+@@ -94,9 +94,6 @@ make</userinput></screen>
+ 
+ <screen role="root"><userinput>make install                                                       &amp;&amp;
+ 
+-install-info --dir-file=/usr/share/info/dir \
+-             /usr/share/info/gpm.info                              &amp;&amp;
+-
+ ln -v -s libgpm.so.2.1.0 /usr/lib/libgpm.so                        &amp;&amp;
+ install -v -m644 conf/gpm-root.conf /etc                           &amp;&amp;
+ 
+@@ -106,15 +103,12 @@ chmod   -v   644    doc/{changes/*,suppo
+ cp      -v -R       doc/{FAQ,HACK_GPM,README*,changes,support} \
+                     /usr/share/doc/gpm-&gpm-version;</userinput></screen>
+ 
++    &update-info-dir;
+   </sect2>
+ 
+   <sect2 role="commands">
+     <title>Command Explanations</title>
+ 
+-    <para><command>install-info ...</command>: This package installs a
+-    <filename class="extension">.info</filename> file, but does not update the
+-    system <filename>dir</filename> file. This command makes the update.</para>
+-
+     <para><command>ln -v -s libgpm.so.2.1.0 /usr/lib/libgpm.so</command>: This
+     command is used to create the <filename class="extension">.so</filename>
+     symlink to the library.</para>

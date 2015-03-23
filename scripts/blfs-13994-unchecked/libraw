@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.libraw.org/data/LibRaw-0.16.0.tar.gz"
+MD5SUMLIST="21f569be043057b754d87e3062e2345a"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr    \
+            --enable-jpeg    \
+            --enable-jasper  \
+            --enable-lcms    \
+            --disable-static \
+            --docdir=/usr/share/doc/libraw-0.16.0
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/gnu/a2ps/a2ps-4.14.tar.gz
+          http://anduin.linuxfromscratch.org/sources/BLFS/conglomeration/i18n-fonts/i18n-fonts-0.1.tar.bz2"
+MD5SUMLIST="781ac3d9b213fa3e1ed0d79f986dc8c7
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+autoconf
+sed -i -e "s/GPERF --version |/& head -n 1 |/" \
+       -e "s|/usr/local/share|/usr/share|" configure
+
+./configure --prefix=/usr  \
+    --sysconfdir=/etc/a2ps \
+    --enable-shared        \
+    --with-medium=letter
+make
+touch doc/*.info
+
+make DESTDIR=${FAKEROOT} install
+
+tar -xf ../i18n-fonts-0.1.tar.bz2
+cp -v i18n-fonts-0.1/fonts/* ${FAKEROOT}/usr/share/a2ps/fonts
+cp -v i18n-fonts-0.1/afm/* ${FAKEROOT}/usr/share/a2ps/afm
+pushd ${FAKEROOT}/usr/share/a2ps/afm
+  ./make_fonts_map.sh
+  mv fonts.map.new fonts.map
+popd
+
+#################
+} # END OF FILE #
+#################
+

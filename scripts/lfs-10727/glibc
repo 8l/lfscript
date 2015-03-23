@@ -1,0 +1,140 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu/glibc/glibc-2.19.tar.xz
+          http://www.iana.org/time-zones/repository/releases/tzdata2014f.tar.gz
+          http://www.linuxfromscratch.org/patches/lfs/development/glibc-2.19-fhs-1.patch"
+MD5SUMLIST="e26b8cc666b162f999404b03970f14e4
+            f333b2e8f876221a97871cae0c188aa5
+            9a5997c3452909b1769918c759eff8a2"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's/\\$$(pwd)/`pwd`/' timezone/Makefile
+
+patch -Np1 -i ../glibc-2.19-fhs-1.patch
+
+mkdir -v ../glibc-build
+cd ../glibc-build
+
+../glibc-2.19/configure    \
+    --prefix=/usr          \
+    --disable-profile      \
+    --enable-kernel=2.6.32 \
+    --enable-obsolete-rpc
+
+make
+
+touch ${FAKEROOT}/etc/ld.so.conf
+
+make install_root=${FAKEROOT} install
+
+cp -v ../glibc-2.19/nscd/nscd.conf ${FAKEROOT}/etc/nscd.conf
+mkdir -pv ${FAKEROOT}/var/cache/nscd
+
+make install_root=${FAKEROOT} localedata/install-locales
+
+cat > ${FAKEROOT}/etc/nsswitch.conf << "EOF"
+# Begin /etc/nsswitch.conf
+
+passwd: files
+group: files
+shadow: files
+
+hosts: files dns
+networks: files
+
+protocols: files
+services: files
+ethers: files
+rpc: files
+
+# End /etc/nsswitch.conf
+EOF
+
+tar -xf ../tzdata2014f.tar.gz
+
+ZONEINFO=${FAKEROOT}/usr/share/zoneinfo
+mkdir -pv $ZONEINFO/{posix,right}
+
+for tz in etcetera southamerica northamerica europe africa antarctica  \
+          asia australasia backward pacificnew systemv; do
+    /tools/sbin/zic -L /dev/null   -d $ZONEINFO       -y "sh yearistype.sh" ${tz}
+    /tools/sbin/zic -L /dev/null   -d $ZONEINFO/posix -y "sh yearistype.sh" ${tz}
+    /tools/sbin/zic -L leapseconds -d $ZONEINFO/right -y "sh yearistype.sh" ${tz}
+done
+
+cp -v zone.tab zone1970.tab iso3166.tab $ZONEINFO
+/tools/sbin/zic -d $ZONEINFO -p America/New_York
+unset ZONEINFO
+
+cat > ${FAKEROOT}/etc/ld.so.conf << "EOF"
+# Begin /etc/ld.so.conf
+/usr/local/lib
+/opt/lib
+
+EOF
+
+cat >> ${FAKEROOT}/etc/ld.so.conf << "EOF"
+# Add an include directory
+include /etc/ld.so.conf.d/*.conf
+
+EOF
+mkdir -pv ${FAKEROOT}/etc/ld.so.conf.d
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+# (*) This will run 'tzselect' to determine your timezone when installing your
+#     system, unless you have set up the TZ variable in 'install.conf'.
+if [ "${LFSCRIPT_INSTALL}" == "true" ]; then
+    [ "${TZ}" == "" ] && TZ="$(tzselect)"
+else
+    TZ="UTC"
+fi
+#tzselect
+
+# (*) This will set the time zone to the one selected earlier.
+cp -v /usr/share/zoneinfo/${TZ} /etc/localtime
+
+######################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+######################################################
+
+if [ ! -r /usr/include/rpc/types.h ]; then
+  su -c 'mkdir -pv /usr/include/rpc'
+  su -c 'cp -v sunrpc/rpc/*.h /usr/include/rpc'
+fi
+
+mkdir -v ../glibc-build
+cd ../glibc-build
+
+../glibc-2.19/configure                             \
+      --prefix=/tools                               \
+      --host=$LFS_TGT                               \
+      --build=$(../glibc-2.19/scripts/config.guess) \
+      --disable-profile                             \
+      --enable-kernel=2.6.32                        \
+      --with-headers=/tools/include                 \
+      libc_cv_forced_unwind=yes                     \
+      libc_cv_ctors_header=yes                      \
+      libc_cv_c_cleanup=yes
+
+make
+
+make install
+
+#################
+} # END OF FILE #
+#################
+

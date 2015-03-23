@@ -1,0 +1,113 @@
+=====================================================================
+An overview of the features selected (and removed) in the fsos kernel
+=====================================================================
+
+            Linux Kernel Configuration
+              General setup
+                Local version - append to kernel release: "-lfscript4"
+                Kernel compression mode: "XZ"
+              Processor type and features
+                Processor family: "486"            (32-bit configuration only)
+(defconfig)     Processor family: "Generic-x86-64" (64-bit configuration only)
+              Device Drivers
+                Generic Driver Options
+(defconfig) [*]   Maintain a devtmpfs filesystem to mount at /dev
+(defconfig) [*] Block devices
+(defconfig) [*]   Loopback device support
+(defconfig) [*] Serial ATA and Parallel ATA drivers (libata)
+(defconfig) [*]   ATA SFF support
+(defconfig) [*]     ATA BMDMA support
+            [*]       VIA SATA support                             *** DeskPC
+            [*]       VIA PATA support                             *** DeskPC
+            [*] Fusion MPT device support                          *** VMwarePC
+            [*]   Fusion MPT ScsiHost drivers for SPI              *** VMwarePC
+            [*]   Fusion MPT ScsiHost drivers for FC               *** VMwarePC
+            [*]   Fusion MPT ScsiHost drivers for SAS              *** VMwarePC
+(defconfig) [*] Network device support
+(defconfig) [*]   Ethernet driver support
+(defconfig) [*]     AMD devices
+            [*]       AMD PCnet32 PCI support                      *** VBoxPC
+(defconfig) [*]     Intel devices
+(defconfig) [*]       Intel(R) PRO/1000 Gigabit Ethernet support   *** VBoxPC
+(defconfig) [*]     VIA devices
+            [*]       VIA Rhine support                            *** DeskPC
+(defconfig) [*]   Wireless LAN
+            [*]     Atheros Wireless Cards                         *** Laptop
+            [*]       Atheros 5xxx wireless cards support          *** Laptop
+                Graphics support
+(defconfig) [*]   Direct Rendering Manager
+(defconfig) [*]   Intel 8xx/9xx/G3x/G4x/HD Graphics
+(defconfig) [*]     Enable modesetting on intel by default         *** Laptop
+(defconfig) [*]   Support for frame buffer devices
+            [*]     VESA VGA graphics support
+(defconfig) [*]   Bootup logo
+(defconfig) [*]     Standard 224-color Linux logo
+(defconfig) [*] Sound card support
+(defconfig) [*]   Advanced Linux Sound Architecture
+(defconfig) [*]     PCI sound devices
+            [*]       (Creative) Ensoniq AudioPCI 1371/1373        *** VMwarePC
+            [*]       Intel/SiS/nVidia/AMD/ALi AC97 Controller     *** VBoxPC
+            [*]       VIA 82C686A/B, 8233/8235 AC97 Controller     *** DeskPC
+(defconfig) [*] USB support
+(defconfig) [*]   Support for Host-side USB
+(defconfig) [*]     EHCI HCD (USB 2.0) support
+(defconfig) [*]     OHCI HCD support
+(defconfig) [*]     UHCI HCD (most Intel and VIA) support
+(defconfig) [*]     USB Mass Storage support
+              File systems
+            [*] Second extended fs support
+            [*] Ext3 journalling file system support
+(defconfig) [*] The Extended 4 (ext4) filesystem
+            [*] Btrfs filesystem support
+                CD-ROM/DVD Filesystems
+(defconfig) [*]   ISO 9660 CDROM file system support
+(defconfig) [*]     Microsoft Joliet CDROM extensions
+            [*]   UDF file system support
+                DOS/FAT/NT Filesystems
+(defconfig) [*]   MSDOS fs support
+(defconfig) [*]   VFAT (Windows-95) fs support
+(defconfig)         Default codepage for FAT: "437"
+(defconfig)         Default iocharset for FAT: "iso8859-1"
+            [*]   NTFS file system support
+            [*]     NTFS write support
+(defconfig) [*] Miscellaneous filesystems
+            [*]   SquashFS 4.0 - Squashed file system support
+(defconfig) [*]     Include support for ZLIB compressed file systems
+            [*]     Include support for LZO compressed file systems
+            [*]     Include support for XZ compressed file systems
+            [*] Virtualization
+            [*]   Kernel-based Virtual Machine (KVM) support
+            [*]     KVM for Intel processors support
+            [*]     KVM for AMD processors support
+
+NOTES:
+- Items in the list prefixed with "(defconfig)" were already selected by
+  default, after 'make ARCH=i386 defconfig'.
+- Any feature not on this list is configured as in 'make ARCH=i386 defconfig' or
+  'make ARCH=x86_64 defconfig'.
+- The kernel used for LiveCD's might also include some kind of Union filesystem.
+- Drivers selected to support a specific machine have a label (prefix "***").
+  Those labels describe the machines on which LFScript is tested.
+
+
+==========================================
+Considerations for making these selections
+==========================================
+
+Booting from CD/DVD:
+* fsOS should be able to read CD-ROM and DVD discs
+* fsOS should be able to read and write SquashFS filesystem images
+
+System transference:
+* fsOS should be able to read USB storage devices
+* fsOS should be able to read and write to ext2, ext3, ext4 & btrfs filesystems
+* fsOS should be able to read and write to Windows (FAT & NTFS) filesystems
+
+System support:
+* fsOS should be able to run on i486 systems
+* fsOS should include drivers to be able to run on a recent VirtualBox VM
+* fsOS should include drivers to be able to run on a recent VMware VM
+
+Misc:
+* Kernel should have KVM support for virtualization
+

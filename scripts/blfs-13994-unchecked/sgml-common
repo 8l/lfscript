@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://sources.redhat.com/pub/docbook-tools/new-trials/SOURCES/sgml-common-0.6.3.tgz
+          http://www.linuxfromscratch.org/patches/blfs/svn/sgml-common-0.6.3-manpage-1.patch"
+MD5SUMLIST="103c9828f24820df86e55e7862e28974
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../sgml-common-0.6.3-manpage-1.patch
+autoreconf -f -i
+
+./configure --prefix=/usr --sysconfdir=/etc
+make
+
+make DESTDIR=${FAKEROOT} docdir=/usr/share/doc install
+
+install-catalog --add ${FAKEROOT}/etc/sgml/sgml-ent.cat \
+    ${FAKEROOT}/usr/share/sgml/sgml-iso-entities-8879.1986/catalog
+
+install-catalog --add ${FAKEROOT}/etc/sgml/sgml-docbook.cat \
+    ${FAKEROOT}/etc/sgml/sgml-ent.cat
+
+install-catalog --remove ${FAKEROOT}/etc/sgml/sgml-ent.cat \
+    ${FAKEROOT}/usr/share/sgml/sgml-iso-entities-8879.1986/catalog
+
+install-catalog --remove ${FAKEROOT}/etc/sgml/sgml-docbook.cat \
+    ${FAKEROOT}/etc/sgml/sgml-ent.cat
+
+#################
+} # END OF FILE #
+#################
+

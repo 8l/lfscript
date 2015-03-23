@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://serf.googlecode.com/svn/src_releases/serf-1.3.7.tar.bz2"
+MD5SUMLIST="0a6fa745df4517dd8f79c75c538919bc"
+REQUIRES="apr-util openssl scons"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i "/Append/s:RPATH=libdir,::"   SConstruct
+sed -i "/Default/s:lib_static,::"    SConstruct
+sed -i "/Alias/s:install_static,::"  SConstruct
+scons PREFIX=/usr
+
+scons PREFIX=/usr install
+
+#################
+} # END OF FILE #
+#################
+

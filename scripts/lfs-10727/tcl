@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://downloads.sourceforge.net/project/tcl/Tcl/8.6.1/tcl8.6.1-src.tar.gz"
+MD5SUMLIST="aae4b701ee527c6e4e1a6f9c7399882e"
+
+###################################################
+preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+###################################################
+
+cd unix
+./configure --prefix=/tools
+
+make
+
+make install
+
+chmod -v u+w /tools/lib/libtcl8.6.so
+
+make install-private-headers
+
+ln -sv tclsh8.6 /tools/bin/tclsh
+
+#################
+} # END OF FILE #
+#################
+

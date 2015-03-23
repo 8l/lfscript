@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://mirrors.zerg.biz/stunnel/stunnel-5.03.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="ee43ef72038e0437400f712837cefee4
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+REQUIRES="openssl"
+TAGS="preinst"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --localstatedir=/var
+make
+
+make DESTDIR=${FAKEROOT} docdir=/usr/share/doc/stunnel-5.03 install
+
+make DESTDIR=${FAKEROOT} cert
+
+install -v -m750 -o stunnel -g stunnel -d ${FAKEROOT}/var/lib/stunnel/run
+chown stunnel:stunnel ${FAKEROOT}/var/lib/stunnel
+
+cat > ${FAKEROOT}/etc/stunnel/stunnel.conf << "EOF"
+; File: /etc/stunnel/stunnel.conf
+
+; Note: The pid and output locations are relative to the chroot location.
+
+pid    = /run/stunnel.pid
+chroot = /var/lib/stunnel
+client = no
+setuid = stunnel
+setgid = stunnel
+cert   = /etc/stunnel/stunnel.pem
+
+;debug = 7
+;output = stunnel.log
+
+;[https]
+;accept  = 443
+;connect = 80
+;; "TIMEOUTclose = 0" is a workaround for a design flaw in Microsoft SSL
+;; Microsoft implementations do not use SSL close-notify alert and thus
+;; they are vulnerable to truncation attacks
+;TIMEOUTclose = 0
+
+EOF
+chmod -v 644 ${FAKEROOT}/etc/stunnel/stunnel.conf
+
+includeBootscript stunnel
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 51 stunnel
+useradd -c "stunnel Daemon" -d /var/lib/stunnel \
+        -g stunnel -s /bin/false -u 51 stunnel
+
+#################
+} # END OF FILE #
+#################
+

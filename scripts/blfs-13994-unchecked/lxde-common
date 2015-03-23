@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/lxde/lxde-common-0.5.5.tar.gz"
+MD5SUMLIST="e51a6b2a815a89fda1f497b509465a97"
+REQUIRES="consolekit lxde-icon-theme lxpanel lxsession openbox pcmanfm"
+POSTINST="true"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -e "s:@prefix@/share/lxde/pcmanfm:@sysconfdir@/xdg/pcmanfm/LXDE:" \
+    -i startlxde.in
+./configure --prefix=/usr --sysconfdir=/etc
+make
+
+make DESTDIR=${FAKEROOT} install
+install -Dm644 lxde-logout.desktop ${FAKEROOT}/usr/share/applications/lxde-logout.desktop
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+update-mime-database /usr/share/mime
+gtk-update-icon-cache -qf /usr/share/icons/hicolor
+update-desktop-database -q
+
+#################
+} # END OF FILE #
+#################
+

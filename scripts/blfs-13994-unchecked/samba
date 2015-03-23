@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.samba.org/pub/samba/stable/samba-4.1.11.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="d7377e7247ad16f6b15363727b91b761
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+REQUIRES="python2"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure                             \
+    --prefix=/usr                       \
+    --sysconfdir=/etc                   \
+    --localstatedir=/var                \
+    --with-piddir=/run/samba            \
+    --with-pammodulesdir=/lib/security  \
+    --without-systemd                   \
+    --enable-fhs                        \
+    --enable-nss-wrapper
+
+make
+
+sed -i "/samba3.blackbox.failure.failure/i \^samba3.raw.eas" selftest/knownfail
+
+make DESTDIR=${FAKEROOT} install
+
+mv -v ${FAKEROOT}/usr/lib/libnss_win{s,bind}.so*   ${FAKEROOT}/lib
+ln -v -sf ../../lib/libnss_winbind.so.2 ${FAKEROOT}/usr/lib/libnss_winbind.so
+ln -v -sf ../../lib/libnss_wins.so.2    ${FAKEROOT}/usr/lib/libnss_wins.so
+
+install -v -m644    examples/smb.conf.default ${FAKEROOT}/etc/samba
+
+mkdir -pv ${FAKEROOT}/etc/openldap/schema
+
+install -v -m644    examples/LDAP/README              \
+                    ${FAKEROOT}/etc/openldap/schema/README.LDAP
+                    
+install -v -m644    examples/LDAP/samba*              \
+                    ${FAKEROOT}/etc/openldap/schema
+                    
+install -v -m755    examples/LDAP/{get*,ol*} \
+                    ${FAKEROOT}/etc/openldap/schema
+
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/samba-4.1.11
+
+install -v -m644    lib/ntdb/doc/design.pdf \
+                    ${FAKEROOT}/usr/share/doc/samba-4.1.11
+
+includeBootscript samba
+
+includeBootscript winbindd
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+ln -v -sf /usr/bin/smbspool /usr/lib/cups/backend/smb
+
+groupadd -g 99 nogroup
+useradd -c "Unprivileged Nobody" -d /dev/null -g nogroup \
+    -s /bin/false -u 99 nobody
+
+#################
+} # END OF FILE #
+#################
+

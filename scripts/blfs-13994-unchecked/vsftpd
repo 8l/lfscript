@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="https://security.appspot.com/downloads/vsftpd-3.0.2.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="8b00c749719089401315bd3c44dddbb2
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+install -v -d -m 0755 ${FAKEROOT}/usr/share/vsftpd/empty
+install -v -d -m 0755 ${FAKEROOT}/home/ftp
+groupadd -g 47 vsftpd
+groupadd -g 45 ftp
+
+useradd -c "vsftpd User"  -d /dev/null -g vsftpd -s ${FAKEROOT}/bin/false -u 47 vsftpd
+useradd -c anonymous_user -d ${FAKEROOT}/home/ftp -g ftp    -s ${FAKEROOT}/bin/false -u 45 ftp
+
+sed -i -e 's|#define VSF_SYSDEP_HAVE_LIBCAP|//&|' sysdeputil.c
+
+make
+
+install -v -m 755 vsftpd        /usr/sbin/vsftpd
+install -v -m 644 vsftpd.8      /usr/share/man/man8
+install -v -m 644 vsftpd.conf.5 /usr/share/man/man5
+install -v -m 644 vsftpd.conf   /etc
+
+cat >> ${FAKEROOT}/etc/vsftpd.conf << "EOF"
+background=YES
+listen=YES
+nopriv_user=vsftpd
+secure_chroot_dir=/usr/share/vsftpd/empty
+EOF
+
+includeBootscript vsftpd
+
+#################
+} # END OF FILE #
+#################
+

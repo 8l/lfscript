@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.postgresql.org/pub/source/v9.3.5/postgresql-9.3.5.tar.bz2
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="5059857c7d7e6ad83b6d55893a121b59
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i '/DEFAULT_PGSOCKET_DIR/s@/tmp@/run/postgresql@' src/include/pg_config_manual.h
+./configure --prefix=/usr          \
+            --enable-thread-safety \
+            --docdir=/usr/share/doc/postgresql-9.3.5
+make
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} install-docs
+
+make -C contrib/<SUBDIR-NAME> install
+
+install -v -dm700 ${FAKEROOT}/srv/pgsql/data
+install -v -dm755 ${FAKEROOT}/run/postgresql
+groupadd -g 41 postgres
+useradd -c "PostgreSQL Server" -g postgres -d ${FAKEROOT}/srv/pgsql/data \
+        -u 41 postgres
+chown -Rv postgres:postgres ${FAKEROOT}/srv/pgsql ${FAKEROOT}/run/postgresql
+su - postgres -c '/usr/bin/initdb -D ${FAKEROOT}/srv/pgsql/data'
+
+su - postgres -c '/usr/bin/postmaster -D ${FAKEROOT}/srv/pgsql/data > \
+    ${FAKEROOT}/srv/pgsql/data/logfile 2>&1 &'
+
+su - postgres -c '/usr/bin/createdb test'
+echo "create table t1 ( name varchar(20), state_province varchar(20) );" \
+    | (su - postgres -c '/usr/bin/psql test ')
+echo "insert into t1 values ('Billy', 'NewYork');" \
+    | (su - postgres -c '/usr/bin/psql test ')
+echo "insert into t1 values ('Evanidus', 'Quebec');" \
+    | (su - postgres -c '/usr/bin/psql test ')
+echo "insert into t1 values ('Jesse', 'Ontario');" \
+    | (su - postgres -c '/usr/bin/psql test ')
+echo "select * from t1;" | (su - postgres -c '/usr/bin/psql test')
+
+includeBootscript postgresql
+
+#################
+} # END OF FILE #
+#################
+

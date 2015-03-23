@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/libdv/libdv-1.0.0.tar.gz"
+MD5SUMLIST="f895162161cfa4bb4a94c070a7caa6c7"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --disable-xv \
+            --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 -d      ${FAKEROOT}/usr/share/doc/libdv-1.0.0
+install -v -m644 README* ${FAKEROOT}/usr/share/doc/libdv-1.0.0
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,248 @@
+#!/bin/bash
+set -E
+trap error ERR
+
+DEFAULT_VERSION_LFS="10727"
+DEFAULT_VERSION_BLFS="13994"
+
+SCRIPTS_DIR="NEW_SCRIPTS"
+
+# Error handler
+error() {
+    echo "*** FAILURE ***" 1>&2
+    exit 1
+}
+
+# Make the 'which' command available, even if the host system does not have it.
+which() {
+    type -pa "$@" | head -n 1 ; return ${PIPESTATUS[0]}
+}
+
+# Fetch stable LFS book
+getStableLFS() {
+    local DOWNLOAD="http://www.linuxfromscratch.org/lfs/downloads"
+
+    if [ ! -r "books/LFS-BOOK-${VERSION}.tar.bz2" ] &&
+       [ ! -r "books/LFS-BOOK-${VERSION}-XML.tar.bz2" ]; then
+        echo "*** Downloading LFS ${VERSION}..." >&2
+        mkdir -p books
+        cd books
+       (wget "${DOWNLOAD}/${VERSION}/LFS-BOOK-${VERSION}.tar.bz2" ||
+                wget "${DOWNLOAD}/${VERSION}/LFS-BOOK-${VERSION}-XML.tar.bz2") \
+                        2> /dev/null
+        cd ../
+    fi
+
+    echo "*** Extracting LFS ${VERSION}..." >&2
+    rm -rf tmp patched-xml/lfs-${VERSION}-xml
+    mkdir tmp
+    mkdir -p patched-xml
+    cd tmp
+    if [ -r "../books/LFS-BOOK-${VERSION}.tar.bz2" ]; then
+        tar xf ../books/LFS-BOOK-${VERSION}.tar.bz2
+    else
+        tar xf ../books/LFS-BOOK-${VERSION}-XML.tar.bz2
+    fi
+    mv * ../patched-xml/lfs-${VERSION}-xml
+    cd ../
+    rm -rf tmp
+}
+
+# Fetch stable BLFS book
+getStableBLFS() {
+    echo "ERROR: Stable BLFS books are not supported." >&2
+    exit 1
+}
+
+# Fetch development (B)LFS book
+getSvn() {
+    local SVN_URL="svn://svn.linuxfromscratch.org/${BOOK_U}/trunk"
+
+    if [ "${VERSION}" == "svn" ]; then
+        echo -n "*** Looking up current revision of ${BOOK_U}... " >&2
+        VERSION="$(svn info ${SVN_URL} | grep Revision | cut -d' ' -f2)"
+        echo "${VERSION}" >&2
+        echo "${VERSION}"
+        return
+    fi
+
+    if [ ! -r "books/${BOOK_L}-svn-${VERSION}.tar.bz2" ]; then
+        echo -n "*** Downloading ${BOOK_U} SVN revision ${VERSION}... " >&2
+        mkdir -p books
+        rm -rf tmp
+        mkdir tmp
+        cd tmp
+        svn export ${SVN_URL} -r ${VERSION} > /dev/null
+        echo "OK" >&2
+
+        echo -n "*** Archiving ${BOOK_U} SVN r${VERSION} for later use... " >&2
+        mv * ${BOOK_L}-${VERSION}-xml
+        tar jcf ../books/${BOOK_L}-svn-${VERSION}.tar.bz2 *
+        cd ../
+        rm -rf tmp
+        echo "OK" >&2
+    fi
+
+    echo -n "*** Extracting ${BOOK_U} SVN revision ${VERSION}... " >&2
+    rm -rf patched-xml/${BOOK_L}-${VERSION}-xml
+    mkdir -p patched-xml
+    cd patched-xml
+    tar xf ../books/${BOOK_L}-svn-${VERSION}.tar.bz2
+    cd ../
+    echo "OK" >&2
+}
+
+fetch() {
+    if [ "${VARIANT}" == "stable" ]; then
+        if [ "${BOOK_L}" == "lfs" ]; then
+            getStableLFS
+        else
+            getStableBLFS
+        fi
+    else
+        getSvn
+    fi
+
+    # Apply patch, created using:
+    # $ diff -rupN old/ new/ > diff.patch
+    if [ ! "${NOPATCH}" ]; then
+
+        # Detect patches dir
+        if [ -d "patches-${BOOK_L}/${VERSION}" ] &&
+                [ "$(ls patches-${BOOK_L}/${VERSION}/*.patch)" != "" ]; then
+            PATCHDIR="patches-${BOOK_L}/${VERSION}"
+        elif [ "$(ls patches-${BOOK_L}/*.patch)" != "" ]; then
+            PATCHDIR="patches-${BOOK_L}"
+        else
+           (echo "WARNING:";
+            echo "    There was no patch file found for ${BOOK_U} ${VERSION}.";
+            echo "    This means that you are probably generating scripts for";
+            echo "    un untested version of ${BOOK_L}.") 1>&2
+            return
+        fi
+
+        echo "*** Patching from directory '${PATCHDIR}'" >&2
+
+        if [ -r "${PATCHDIR}/${BOOK_L}-${VERSION}.patch" ]; then
+            PATCHLIST="${PATCHDIR}/${BOOK_L}-${VERSION}.patch"
+        else
+            PATCHLIST="$(ls ${PATCHDIR}/*.patch)"
+        fi
+
+
+
+        echo "*** Patching the XML sources:" >&2
+        pushd patched-xml/${BOOK_L}-${VERSION}-xml > /dev/null
+
+        for PATCH in ${PATCHLIST}; do
+            echo "--- $(basename ${PATCH}) ---" >&2
+            patch -f -p1 < ../../${PATCH} || echo -n ''
+        done
+
+       popd > /dev/null
+    fi
+}
+
+factory() {
+    if [ "${BOOK_L}" == "blfs" ]; then
+        rm -rf ${SCRIPTS_DIR}/{extras,contrib}
+        mkdir -p ${SCRIPTS_DIR}/{extras,contrib}
+    fi
+    rm -rf ${SCRIPTS_DIR}/${BOOK_L}-${VERSION}{,-unchecked}
+    mkdir -p ${SCRIPTS_DIR}/${BOOK_L}-${VERSION}{,-unchecked}
+
+    fetch
+
+
+    case $(uname -m) in
+    i?86)
+        ARCH="i386"
+        ;;
+    *)
+        ARCH="$(uname -m)"
+        ;;
+    esac
+
+    JAVA="../lfc/build/vm-${ARCH}"
+    if [ "$(which java 2> /dev/null)" != "" ]; then
+        echo "*** Using host system java" >&2
+        JAVA="java"
+    fi
+
+    echo "*** Running ScriptFactoryII" >&2
+    SF_VERSION="r${VERSION}"
+    if [ "${VARIANT}" == "stable" ]; then
+        SF_VERSION="${VERSION} (stable)"
+    fi
+    ${JAVA} -cp ../lfc/build/libLFClass.jar org.lfscript.factory2.XMLFactory \
+            ${BOOK_L} patched-xml/${BOOK_L}-${VERSION}-xml \
+            ${SCRIPTS_DIR}/${BOOK_L}-${VERSION}-unchecked ${SF_VERSION} ${@}
+
+    rm -rf patched-xml
+
+    # Whitelist
+    if [ "${BOOK_L}" == "blfs" ] && [ -r whitelists/blfs-*.list ]; then
+        echo -n "*** Processing whitelist... " >&2
+        for f in $(cat whitelists/blfs-*.list | grep -v "^#"); do
+            mv ${SCRIPTS_DIR}/blfs-${VERSION}{-unchecked,}/${f} || echo -n ""
+        done
+        echo "OK" >&2
+    else
+        rm -rf ${SCRIPTS_DIR}/${BOOK_L}-${VERSION}
+        mv ${SCRIPTS_DIR}/${BOOK_L}-${VERSION}{-unchecked,}
+    fi
+}
+
+# Select book (argument 1)
+BOOK_L="${1}"
+if [ "${BOOK_L}" == "lfs" ]; then
+    BOOK_U="LFS"
+elif [ "${BOOK_L}" == "blfs" ]; then
+    BOOK_U="BLFS"
+else
+    echo "ERROR: First argument must be either 'lfs' or 'blfs'." >&2
+    exit 1
+fi
+shift
+
+# Select version and determine variant (optional argument 2)
+VERSION="${1}"
+if [ "${VERSION}" ]; then
+    if [ "${VERSION}" == "nopatch" ]; then
+        VERSION=""
+    else
+        shift
+    fi
+fi
+
+if [ "${VERSION}" == "" ] || [ "${VERSION}" == "default" ]; then
+    if [ "${BOOK_L}" == "lfs" ]; then
+        VERSION="${DEFAULT_VERSION_LFS}";
+    elif [ "${BOOK_L}" == "blfs" ]; then
+        VERSION="${DEFAULT_VERSION_BLFS}";
+    fi
+fi
+
+if [ "$(echo ${VERSION} | grep '\.')" != "" ]; then
+    VARIANT="stable"
+else
+    VARIANT="svn"
+    if [ "${VERSION}" == "" ] || [ "${VERSION}" == "svn" ]; then
+        VERSION="$(getSvn)"
+    fi
+fi
+
+# Opt out of patches (optional argument 3)
+NOPATCH=""
+if [ "${1}" == "nopatch" ]; then
+    NOPATCH="true"
+    shift
+fi
+
+# Select function
+if [ "${0}" == "fetch" ] || [ "${0}" == "./fetch" ]; then
+    fetch ${@}
+else
+    factory ${@}
+fi
+

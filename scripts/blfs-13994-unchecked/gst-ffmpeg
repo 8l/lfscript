@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://gstreamer.freedesktop.org/src/gst-ffmpeg/gst-ffmpeg-0.10.13.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/gst-ffmpeg-0.10.13-gcc-4.7-1.patch"
+MD5SUMLIST="7f5beacaf1312db2db30a026b36888c4
+            dontverify"
+REQUIRES="gst-plugins-base yasm"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -p1 < ../gst-ffmpeg-0.10.13-gcc-4.7-1.patch
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

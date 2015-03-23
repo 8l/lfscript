@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://fy.chalmers.se/~appro/linux/DVD+RW/tools/dvd+rw-tools-7.1.tar.gz"
+MD5SUMLIST="8acb3c885c87f6838704a0025e435871"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i '/stdlib/a #include <limits.h>' transport.hxx
+sed -i 's#mkisofs"#xorrisofs"#' growisofs.c
+sed -i 's#mkisofs#xorrisofs#;s#MKISOFS#XORRISOFS#' growisofs.1
+
+make all rpl8 btcflash
+
+make DESTDIR=${FAKEROOT} prefix=/usr install
+install -v -m644 -D index.html \
+    ${FAKEROOT}/usr/share/doc/dvd+rw-tools-7.1/index.html
+
+#################
+} # END OF FILE #
+#################
+

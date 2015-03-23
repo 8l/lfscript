@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://archive.apache.org/dist/httpd/httpd-2.4.10.tar.bz2
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/httpd-2.4.10-blfs_layout-1.patch"
+MD5SUMLIST="44543dff14a4ebc1e9e2d86780507156
+            179a6c22d0f7d2619cba4eb794fdc1cb
+            dontverify"
+REQUIRES="apr-util pcre"
+TAGS="preinst"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../httpd-2.4.10-blfs_layout-1.patch
+sed '/dir.*CFG_PREFIX/s@^@#@' -i support/apxs.in
+./configure --enable-authnz-fcgi                            \
+            --enable-layout=BLFS                            \
+            --enable-mods-shared="all cgi"                  \
+            --enable-mpms-shared=all                        \
+            --enable-suexec=shared                          \
+            --with-apr=/usr/bin/apr-1-config                \
+            --with-apr-util=/usr/bin/apu-1-config           \
+            --with-suexec-bin=/usr/lib/httpd/suexec         \
+            --with-suexec-caller=apache                     \
+            --with-suexec-docroot=/srv/www                  \
+            --with-suexec-logfile=/var/log/httpd/suexec.log \
+            --with-suexec-uidmin=100                        \
+            --with-suexec-userdir=public_html
+make
+
+make DESTDIR=${FAKEROOT} install
+
+mv -v ${FAKEROOT}/usr/sbin/suexec ${FAKEROOT}/usr/lib/httpd/suexec
+chgrp apache           ${FAKEROOT}/usr/lib/httpd/suexec
+chmod 4754             ${FAKEROOT}/usr/lib/httpd/suexec
+
+chown -v -R apache:apache ${FAKEROOT}/srv/www
+
+includeBootscript httpd
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 25 apache
+useradd -c "Apache Server" -d /srv/www -g apache \
+        -s /bin/false -u 25 apache
+
+#################
+} # END OF FILE #
+#################
+

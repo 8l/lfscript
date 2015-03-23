@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="https://bitbucket.org/france/transcode-tcforge/downloads/transcode-1.1.7.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/transcode-1.1.7-ffmpeg2-1.patch"
+MD5SUMLIST="9bb25a796a8591fb764de46ee87ce505
+            dontverify"
+REQUIRES="ffmpeg"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i "s:#include <freetype/ftglyph.h>:#include FT_GLYPH_H:" filter/subtitler/load_font.c
+
+sed -i 's|doc/transcode|&-$(PACKAGE_VERSION)|' \
+       $(find . -name Makefile.in -exec grep -l 'docsdir =' {} \;)
+patch -Np1 -i ../transcode-1.1.7-ffmpeg2-1.patch
+./configure --prefix=/usr \
+            --enable-alsa \
+            --enable-libmpeg2
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

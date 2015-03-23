@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/tripwire/tripwire-2.4.2.2-src.tar.bz2"
+MD5SUMLIST="2462ea16fb0b5ae810471011ad2f2dd6"
+REQUIRES="openssl"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i -e 's@TWDB="${prefix}@TWDB="/var@' install/install.cfg
+sed -i -e 's/!Equal/!this->Equal/' src/cryptlib/algebra.h
+sed -i -e '/stdtwadmin.h/i#include <unistd.h>' src/twadmin/twadmincl.cpp
+sed -i -e '/TWMAN/ s|${prefix}|/usr/share|' \
+       -e '/TWDOCS/s|${prefix}|/usr/share|' install/install.cfg
+sed -i -e 's/eArchiveOpen e\([^)]*)\)/throw ( eArchiveOpen\1 )/' \
+       -e '/throw e;/d' src/core/archive.cpp
+
+./configure --prefix=/usr --sysconfdir=/etc/tripwire
+make
+
+make DESTDIR=${FAKEROOT} install
+cp -v policy/*.txt ${FAKEROOT}/usr/share/doc/tripwire
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+twadmin --create-polfile --site-keyfile /etc/tripwire/site.key \
+    /etc/tripwire/twpol.txt
+tripwire --init
+
+tripwire --check > /etc/tripwire/report.txt
+
+uname -n
+
+tripwire --update --twrfile /var/lib/tripwire/report/<report-name.twr>
+
+twadmin --create-polfile /etc/tripwire/twpol.txt
+tripwire --init
+
+#################
+} # END OF FILE #
+#################
+

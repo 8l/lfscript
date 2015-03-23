@@ -1,0 +1,78 @@
+#!/bin/bash
+# Builds a redistributable archive containing LFScript.
+# Usage: "sudo bash distrib $(whoami)"
+set -e
+
+main() {
+    local LFSCRIPT="lfscript4-revision27"
+
+    if [ "$(whoami)" != "root" ]; then
+        echo "Please run this script as root."
+        exit 1
+    fi
+
+    # Prepare
+    rm -rf tmp ${LFSCRIPT}.tar.bz2
+    mkdir -p tmp/${LFSCRIPT}/make
+
+    # Copy files that make up lfscript
+    cp    ../version-check.sh tmp/${LFSCRIPT}
+    cp    ../lfscript         tmp/${LFSCRIPT}
+
+    cp -R ../lfc          tmp/${LFSCRIPT}
+    cp -R ../fsos         tmp/${LFSCRIPT}
+    cp -R ../factory      tmp/${LFSCRIPT}
+    cp -R ../make/scripts tmp/${LFSCRIPT}
+    cp -R ../make/sources tmp/${LFSCRIPT}
+
+    cp -R ../make/scripts   tmp/${LFSCRIPT}/make
+    cp -R ../make/sources   tmp/${LFSCRIPT}/make
+    cp -R ../make/distrib   tmp/${LFSCRIPT}/make
+    cp -R ../make/vm-i386   tmp/${LFSCRIPT}/make
+   #cp -R ../make/vm-arm    tmp/${LFSCRIPT}/make
+   #cp -R ../make/vm-x86_64 tmp/${LFSCRIPT}/make
+
+    pushd tmp
+    pushd ${LFSCRIPT}
+
+    # Rebuild LFClass
+    pushd lfc
+    bash build.sh purge # Purge to test download sites are still avialable
+    bash build.sh bin
+    rm -rf build/lfclass-* # Remove embedded LFC, leave the VM
+    bash build.sh pure
+    bash build.sh jar
+    cp -v ../../../vm-i386   build # Add prebuilt 32-bit binary
+   #cp -v ../../../vm-arm    build # Add prebuilt ARMv6 binary
+   #cp -v ../../../vm-x86_64 build # Add prebuilt 64-bit binary
+    popd # lfscript
+
+    # Rebuild scripts using ScriptFactory
+    pushd factory
+    rm -rf NEW_SCRIPTS patched-xml
+    bash factory lfs default header
+    bash factory blfs default header
+    mv -v NEW_SCRIPTS/* ../scripts
+    rm -rf NEW_SCRIPTS books
+    popd # factory
+
+    # Set proper permissions and archive
+    popd # tmp
+    find . -type d -exec chmod 755 {} \;
+    find . -type f -exec chmod 644 {} \;
+    chmod 755 ${LFSCRIPT}/version-check.sh
+    chmod 755 ${LFSCRIPT}/lfscript
+    chmod 755 ${LFSCRIPT}/lfc/build/vm-*
+    chmod 755 ${LFSCRIPT}/fsos/tools/merge_cds
+    chown -R root:root ${LFSCRIPT}
+    tar cjf ../${LFSCRIPT}.tar.bz2 ${LFSCRIPT}
+    popd # make
+    rm -rf tmp
+
+    if [ "${1}" != "" ]; then
+        chown ${1}:${1} ${LFSCRIPT}.tar.bz2
+    fi
+}
+
+main $@
+

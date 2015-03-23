@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://releases.compiz-fusion.org/0.8.4/ccsm-0.8.4.tar.bz2"
+MD5SUMLIST="dontverify"
+REQUIRES="compizconfig-python python-pygtk"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+make
+
+make PREFIX=${FAKEROOT}/usr install
+
+#################
+} # END OF FILE #
+#################
+

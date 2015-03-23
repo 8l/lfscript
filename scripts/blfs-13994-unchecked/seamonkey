@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.mozilla.org/pub/mozilla.org/seamonkey/releases/2.26.1/source/seamonkey-2.26.1.source.tar.bz2"
+MD5SUMLIST="4bfa46b370b4d211eef56b90277a9517"
+REQUIRES="alsa-lib gtk+2 unzip xorg-env zip"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cat > mozconfig << EOF
+# If you have a multicore machine you can speed up the build by running
+# several jobs at once, but if you have a single core, delete this line:
+mk_add_options MOZ_MAKE_FLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+
+# If you have installed Yasm delete this option:
+ac_add_options --disable-webm
+
+# If you have installed DBus-Glib delete this option:
+ac_add_options --disable-dbus
+
+# If you have installed wireless-tools delete this option:
+ac_add_options --disable-necko-wifi
+
+# If you have installed libnotify delete this option:
+ac_add_options --disable-libnotify
+
+# Comment out following option if you have PulseAudio installed
+ac_add_options --disable-pulseaudio
+
+# GStreamer is necessary for H.264 video playback in HTML5 Video Player;
+# to be enabled, also remember to set "media.gstreamer.enabled" to "true"
+# in about:config. If you have GStreamer 0.x.y, uncomment this line:
+#ac_add_options --enable-gstreamer
+
+# Uncomment these if you have installed them:
+# ac_add_options --enable-startup-notification
+# ac_add_options --enable-system-hunspell
+# ac_add_options --enable-system-sqlite
+# ac_add_options --with-system-libevent
+# ac_add_options --with-system-libvpx
+# ac_add_options --with-system-nspr
+# ac_add_options --with-system-nss
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/moz-build-dir
+ac_add_options --disable-crashreporter
+ac_add_options --disable-debug
+ac_add_options --disable-debug-symbols
+ac_add_options --disable-installer
+ac_add_options --disable-static
+ac_add_options --disable-tests
+ac_add_options --disable-updater
+ac_add_options --enable-application=suite
+ac_add_options --enable-shared
+ac_add_options --enable-system-cairo
+ac_add_options --enable-system-ffi
+ac_add_options --prefix=/usr
+ac_add_options --with-pthreads
+ac_add_options --with-system-jpeg
+ac_add_options --with-system-png
+ac_add_options --with-system-zlib
+EOF
+
+mkdir -vp mozilla/moz-build-dir
+sed -e 's/$(MOZ_ZLIB_CFLAGS)/$(MOZ_ZLIB_CFLAGS) $(MOZ_PIXMAN_CFLAGS)/' \
+    -i config/config.mk
+
+export CPLUS_INCLUDE_PATH=$XORG_PREFIX/include
+export C_INCLUDE_PATH=$XORG_PREFIX/include
+
+make -f client.mk
+
+moz-build-dir/mozilla/dist/seamonkey/seamonkey
+
+make DESTDIR=${FAKEROOT} -f client.mk install INSTALL_SDK=
+
+cp -v moz-build-dir/mozilla/dist/man/man1/seamonkey.1 ${FAKEROOT}/usr/share/man/man1
+
+make DESTDIR=${FAKEROOT} -C moz-build-dir install
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+mkdir -pv /usr/share/{applications,pixmaps}
+
+cat > /usr/share/applications/seamonkey.desktop << "EOF"
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Name=SeaMonkey
+Comment=The Mozilla Suite
+Icon=seamonkey
+Exec=seamonkey
+Categories=Network;GTK;Application;Email;Browser;WebBrowser;News;
+StartupNotify=true
+Terminal=false
+EOF
+
+ln -sfv /usr/lib/seamonkey-2.26.1/chrome/icons/default/seamonkey.png \
+        /usr/share/pixmaps
+
+#################
+} # END OF FILE #
+#################
+

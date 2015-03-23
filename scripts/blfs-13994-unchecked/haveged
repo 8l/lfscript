@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.issihosts.com/haveged/haveged-1.9.1.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="015ff58cd10607db0e0de60aeca2f5f8
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+mkdir -pv    ${FAKEROOT}/usr/share/doc/haveged-1.9.1
+cp -v README ${FAKEROOT}/usr/share/doc/haveged-1.9.1
+
+includeBootscript haveged
+
+#################
+} # END OF FILE #
+#################
+

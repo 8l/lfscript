@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/openjade/openjade-1.3.2.tar.gz
+          http://www.linuxfromscratch.org/patches/blfs/svn/openjade-1.3.2-gcc_4.6-1.patch"
+MD5SUMLIST="7df692e3186109cc00db6825b777201e
+            dontverify"
+REQUIRES="opensp"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../openjade-1.3.2-gcc_4.6-1.patch
+
+sed -i -e '/getopts/{N;s#&G#g#;s#do .getopts.pl.;##;}' \
+       -e '/use POSIX/ause Getopt::Std;' msggen.pl
+
+./configure --prefix=/usr                                \
+            --mandir=/usr/share/man                      \
+            --enable-http                                \
+            --disable-static                             \
+            --enable-default-catalog=/etc/sgml/catalog   \
+            --enable-default-search-path=/usr/share/sgml \
+            --datadir=/usr/share/sgml/openjade-1.3.2
+make
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} install-man
+ln -v -sf openjade ${FAKEROOT}/usr/bin/jade
+ln -v -sf libogrove.so ${FAKEROOT}/usr/lib/libgrove.so
+ln -v -sf libospgrove.so ${FAKEROOT}/usr/lib/libspgrove.so
+ln -v -sf libostyle.so ${FAKEROOT}/usr/lib/libstyle.so
+
+install -v -m644 dsssl/catalog ${FAKEROOT}/usr/share/sgml/openjade-1.3.2/
+
+install -v -m644 dsssl/*.{dtd,dsl,sgm}              \
+    ${FAKEROOT}/usr/share/sgml/openjade-1.3.2
+
+install-catalog --add ${FAKEROOT}/etc/sgml/openjade-1.3.2.cat  \
+    ${FAKEROOT}/usr/share/sgml/openjade-1.3.2/catalog
+
+install-catalog --add ${FAKEROOT}/etc/sgml/sgml-docbook.cat    \
+    ${FAKEROOT}/etc/sgml/openjade-1.3.2.cat
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+echo "SYSTEM \"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd\" \
+    \"/usr/share/xml/docbook/xml-dtd-4.5/docbookx.dtd\"" >> \
+    /usr/share/sgml/openjade-1.3.2/catalog
+
+#################
+} # END OF FILE #
+#################
+

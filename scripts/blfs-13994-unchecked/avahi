@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://pkgs.fedoraproject.org/repo/pkgs/avahi/avahi-0.6.31.tar.gz/2f22745b8f7368ad5a0a3fddac343f2d/avahi-0.6.31.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="2f22745b8f7368ad5a0a3fddac343f2d
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+REQUIRES="glib2"
+TAGS="preinst"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's/\(CFLAGS=.*\)-Werror \(.*\)/\1\2/' configure
+sed -i -e 's/-DG_DISABLE_DEPRECATED=1//' \
+ -e '/-DGDK_DISABLE_DEPRECATED/d' avahi-ui/Makefile.in
+./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --localstatedir=/var \
+            --disable-static     \
+            --disable-mono       \
+            --disable-monodoc    \
+            --disable-python     \
+            --disable-qt3        \
+            --disable-qt4        \
+            --enable-core-docs   \
+            --with-distro=none
+make
+
+make DESTDIR=${FAKEROOT} install
+
+includeBootscript avahi
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -fg 84 avahi
+useradd -c "Avahi Daemon Owner" -d /var/run/avahi-daemon -u 84 \
+        -g avahi -s /bin/false avahi
+
+groupadd -fg 86 netdev
+
+#################
+} # END OF FILE #
+#################
+

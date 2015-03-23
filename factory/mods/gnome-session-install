@@ -1,0 +1,6 @@
+# (*) Configuring the Core GNOME Packages
+echo "exec gnome-session" \
+        > /etc/alternatives/xinitrc/gnome.xinitrc
+
+echo "exec dbus-launch --exit-with-session gnome-session" \
+        > /etc/alternatives/xinitrc/gnome_w_dbus.xinitrc

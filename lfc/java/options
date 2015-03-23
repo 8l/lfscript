@@ -1,0 +1,22 @@
+-windowtitle 'LFClass API'
+-header '<b>LFScript Class Library</b><br /><sub>Development Version*</sub></b>'
+-bottom '\
+    <!-- Custom footer -->\
+    <div style="text-align: center">\
+        <sub>\
+            <b>Copyright 2011 (c) &nbsp; Marcel van den Boer</b>\
+            <br />\
+            This work is licensed under\
+            <a href="http://opensource.org/licenses/mit-license.php">\
+                the MIT (Expat) license\
+            </a>.\
+            <br /><br />\
+            <i>\
+                * This work is in active development and is therefore subject\
+                  to change.\
+            </i>\
+        </sub>\
+    </div>\
+    <!--/ Custom footer -->\
+'
+org.lfscript.buildmgr

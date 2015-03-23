@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/non-gnu/cvs/source/stable/1.11.23/cvs-1.11.23.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/cvs-1.11.23-zlib-1.patch"
+MD5SUMLIST="0213ea514e231559d6ff8f80a34117f0
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../cvs-1.11.23-zlib-1.patch
+
+sed -i -e 's/getline /get_line /' lib/getline.{c,h}
+sed -i -e 's/^@sp$/& 1/'          doc/cvs.texinfo
+touch doc/*.pdf
+
+./configure --prefix=/usr --docdir=/usr/share/doc/cvs-1.11.23
+make
+
+make -C doc html txt
+
+sed -e 's/rsh};/ssh};/' \
+    -e 's/g=rw,o=r$/g=r,o=r/' \
+    -i src/sanity.sh
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} -C doc install-pdf
+install -v -m644 FAQ README ${FAKEROOT}/usr/share/doc/cvs-1.11.23
+
+install -v -m644 doc/*.txt ${FAKEROOT}/usr/share/doc/cvs-1.11.23
+install -v -m755 -d        ${FAKEROOT}/usr/share/doc/cvs-1.11.23/html/cvs{,client}
+install -v -m644 doc/cvs.html/* \
+                           ${FAKEROOT}/usr/share/doc/cvs-1.11.23/html/cvs
+install -v -m644 doc/cvsclient.html/* \
+                           ${FAKEROOT}/usr/share/doc/cvs-1.11.23/html/cvsclient
+
+#################
+} # END OF FILE #
+#################
+

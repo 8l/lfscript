@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.24.tar.xz"
+MD5SUMLIST="d43ab9f680435a7fff35b4ace8d45b80"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+make
+
+make DESTDIR=${FAKEROOT} RAISE_SETFCAP=no prefix=/usr install
+chmod -v 755 ${FAKEROOT}/usr/lib/libcap.so
+
+mv -v ${FAKEROOT}/usr/lib/libcap.so.* ${FAKEROOT}/lib
+ln -sfv ../../lib/$(readlink ${FAKEROOT}/usr/lib/libcap.so) ${FAKEROOT}/usr/lib/libcap.so
+
+#################
+} # END OF FILE #
+#################
+

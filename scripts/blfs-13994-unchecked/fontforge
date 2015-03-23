@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://anduin.linuxfromscratch.org/sources/other/fontforge-2.0.20140101.tar.xz"
+MD5SUMLIST="024ebb9dca824154fc19310b675f9d50"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed "/DGifCloseFile/s:gif:&, NULL:g" -i gutils/gimagereadgif.c
+
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/fontforge-2.0.20140101
+make
+
+make DESTDIR=${FAKEROOT} install
+
+rm -rf desktop/icons/src
+cp -rf desktop/icons/* ${FAKEROOT}/usr/share/icons/hicolor
+install -Dm644 desktop/fontforge.desktop ${FAKEROOT}/usr/share/applications/fontforge.desktop
+install -Dm644 desktop/fontforge.xml ${FAKEROOT}/usr/share/mime/packages/fontforge.xml
+
+#################
+} # END OF FILE #
+#################
+

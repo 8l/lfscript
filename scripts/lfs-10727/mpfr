@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://www.mpfr.org/mpfr-3.1.2/mpfr-3.1.2.tar.xz
+          http://www.linuxfromscratch.org/patches/lfs/development/mpfr-3.1.2-upstream_fixes-2.patch"
+MD5SUMLIST="e3d203d188b8fe60bb6578dd3152e05c
+            2b2aa4371a4e848411639356fd82becf"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../mpfr-3.1.2-upstream_fixes-2.patch
+
+./configure --prefix=/usr        \
+            --enable-thread-safe \
+            --docdir=/usr/share/doc/mpfr-3.1.2
+
+make
+make html
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} install-html
+
+#################
+} # END OF FILE #
+#################
+

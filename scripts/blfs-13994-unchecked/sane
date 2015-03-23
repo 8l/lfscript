@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://fossies.org/linux/misc//sane-backends-1.0.24.tar.gz"
+MD5SUMLIST="1ca68e536cd7c1852322822f5f6ac3a4"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+groupadd -g 70 scanner
+
+su $(whoami)
+
+groups
+
+./configure --prefix=/usr                                    \
+            --sysconfdir=/etc                                \
+            --localstatedir=/var                             \
+            --with-docdir=/usr/share/doc/sane-backend-1.0.24 \
+            --with-group=scanner
+make
+exit
+
+sed -i -e 's/Jul 31 07:52:48/Oct  7 08:58:33/'      \
+       -e 's/1.0.24git/1.0.24/'                     \
+       testsuite/tools/data/db.ref                  \
+       testsuite/tools/data/html-mfgs.ref           \
+       testsuite/tools/data/usermap.ref             \
+       testsuite/tools/data/html-backends-split.ref \
+       testsuite/tools/data/udev+acl.ref            \
+       testsuite/tools/data/udev.ref
+
+make DESTDIR=${FAKEROOT} install
+install -m 644 -v tools/udev/libsane.rules           \
+                  ${FAKEROOT}/etc/udev/rules.d/65-scanner.rules
+chgrp -v scanner  ${FAKEROOT}/var/lock/sane
+
+sed -i -e "/SANE_CAP_ALWAYS_SETTABLE/d" src/gtkglue.c
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m644 doc/sane.png xscanimage-icon-48x48-2.png \
+    ${FAKEROOT}/usr/share/sane
+
+ln -v -s ../../../../bin/xscanimage ${FAKEROOT}/usr/lib/gimp/2.0/plug-ins
+
+cat >> ${FAKEROOT}/etc/sane.d/net.conf << "EOF"
+connect_timeout = 60
+<server_ip>
+EOF
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+mkdir -pv /usr/share/{applications,pixmaps}
+
+cat > /usr/share/applications/xscanimage.desktop << "EOF"
+[Desktop Entry]
+Encoding=UTF-8
+Name=XScanImage - Scanning
+Comment=Acquire images from a scanner
+Exec=xscanimage
+Icon=xscanimage
+Terminal=false
+Type=Application
+Categories=Application;Graphics
+EOF
+
+ln -svf ../sane/xscanimage-icon-48x48-2.png /usr/share/pixmaps/xscanimage.png
+
+SIGHUP
+
+#################
+} # END OF FILE #
+#################
+

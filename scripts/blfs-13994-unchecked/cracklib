@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/cracklib/cracklib-2.9.1.tar.gz
+          http://downloads.sourceforge.net/cracklib/cracklib-words-20080507.gz"
+MD5SUMLIST="90536219c520add2ceb3c26f0d7da404
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --with-default-dict=/lib/cracklib/pw_dict \
+            --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+mv -v ${FAKEROOT}/usr/lib/libcrack.so.* ${FAKEROOT}/lib
+ln -sfv ../../lib/$(readlink ${FAKEROOT}/usr/lib/libcrack.so) ${FAKEROOT}/usr/lib/libcrack.so
+
+install -v -m644 -D    ../cracklib-words-20080507.gz           \
+                         ${FAKEROOT}/usr/share/dict/cracklib-words.gz
+gunzip -v                ${FAKEROOT}/usr/share/dict/cracklib-words.gz
+ln -v -sf cracklib-words ${FAKEROOT}/usr/share/dict/words
+echo $(hostname) >>      ${FAKEROOT}/usr/share/dict/cracklib-extra-words
+install -v -m755 -d      ${FAKEROOT}/lib/cracklib
+create-cracklib-dict     ${FAKEROOT}/usr/share/dict/cracklib-words        \
+                         ${FAKEROOT}/usr/share/dict/cracklib-extra-words
+
+make test
+
+#################
+} # END OF FILE #
+#################
+

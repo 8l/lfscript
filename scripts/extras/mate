@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+REQUIRES="mate-core"
+TAGS="group"
+

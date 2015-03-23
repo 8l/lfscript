@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/heirloom/mailx-12.4.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/mailx-12.4-openssl_1.0.0_build_fix-1.patch"
+MD5SUMLIST="0c93759e34200eb56a0e7c464680a54a
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../mailx-12.4-openssl_1.0.0_build_fix-1.patch
+make SENDMAIL=/usr/sbin/sendmail -j1
+
+make DESTDIR=${FAKEROOT} PREFIX=/usr UCBINSTALL=/usr/bin/install install
+ln -v -sf mailx ${FAKEROOT}/usr/bin/mail
+ln -v -sf mailx ${FAKEROOT}/usr/bin/nail
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/mailx-12.4
+install -v -m644 README mailx.1.html ${FAKEROOT}/usr/share/doc/mailx-12.4
+
+#################
+} # END OF FILE #
+#################
+

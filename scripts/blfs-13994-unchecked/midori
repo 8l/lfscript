@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.midori-browser.org/downloads/midori_0.5.8_all_.tar.bz2"
+MD5SUMLIST="b89e25e74199d705e74767499a415976"
+REQUIRES="cmake libnotify vala webkitgtk webkitgtk2"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+mkdir -v midori-0.5.8
+tar xf midori_0.5.8_all_.tar.bz2 -C midori-0.5.8
+cd midori-0.5.8
+
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

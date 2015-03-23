@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://anduin.linuxfromscratch.org/sources/BLFS/svn/t/tidy-cvs_20101110.tar.bz2"
+MD5SUMLIST="dd1fe109b4259ad3f364b175787ad5e9"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -m644 -D htmldoc/tidy.1 \
+                    ${FAKEROOT}/usr/share/man/man1/tidy.1
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/tidy-cvs_20101110
+install -v -m644    htmldoc/*.{html,gif,css} \
+                    ${FAKEROOT}/usr/share/doc/tidy-cvs_20101110
+
+#################
+} # END OF FILE #
+#################
+

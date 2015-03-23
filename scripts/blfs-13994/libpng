@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/libpng/libpng-1.6.12.tar.xz
+          http://downloads.sourceforge.net/libpng-apng/libpng-1.6.12-apng.patch.gz"
+MD5SUMLIST="ee752da8aa75076500e4cf31318e636e
+            f959e8b1cb9876ce946a2701e8aca519"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+gzip -cd ../libpng-1.6.12-apng.patch.gz | patch -p1
+
+./configure --prefix=/usr --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+mkdir -v ${FAKEROOT}/usr/share/doc/libpng-1.6.12
+cp -v README libpng-manual.txt ${FAKEROOT}/usr/share/doc/libpng-1.6.12
+
+#################
+} # END OF FILE #
+#################
+

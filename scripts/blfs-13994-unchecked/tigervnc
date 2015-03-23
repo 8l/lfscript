@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/project/tigervnc/tigervnc/1.3.1/tigervnc-1.3.1.tar.gz
+          ftp://ftp.x.org/pub/individual/xserver/xorg-server-1.15.0.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/tigervnc-1.3.1-gethomedir-1.patch
+          http://www.linuxfromscratch.org/patches/blfs/svn/tigervnc-1.3.1-getmaster-1.patch
+          http://www.linuxfromscratch.org/patches/blfs/svn/tigervnc-1.3.1-xorg115-1.patch"
+MD5SUMLIST="e80b16aa74f1d8e89f284a6aef99955d
+            dontverify
+            dontverify
+            dontverify
+            dontverify"
+REQUIRES="cmake fltk gnutls libgcrypt libjpeg-turbo nasm pixman x7app xorg-env"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xf ../xorg-server-1.15.0.tar.bz2 -C unix/xserver --strip-components=1
+
+patch -Np1 -i ../tigervnc-1.3.1-gethomedir-1.patch
+patch -Np1 -i ../tigervnc-1.3.1-getmaster-1.patch
+patch -Np1 -i ../tigervnc-1.3.1-xorg115-1.patch
+
+cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/usr
+make
+
+pushd unix/xserver
+  patch -Np1 -i ../xserver114.patch
+  autoreconf -fiv
+
+  ./configure $XORG_CONFIG \
+      --disable-present     --disable-dri3       --disable-dmx         \
+      --disable-static      --disable-xinerama   --disable-dri         \
+      --disable-xorg        --disable-xnest      --disable-xvfb        \
+      --disable-xwin        --disable-xephyr     --disable-kdrive      \
+      --disable-config-dbus --disable-config-hal --disable-config-udev \
+      --disable-unit-tests  --disable-selective-werror                 \
+      --without-dtrace      --enable-dri2        --enable-glx \
+      --enable-glx-tls      --with-pic
+  make
+popd
+
+make DESTDIR=${FAKEROOT} install
+
+cd unix/xserver/hw/vnc
+make DESTDIR=${FAKEROOT} install
+sed -i 's/iconic/nowin/' ${FAKEROOT}/usr/bin/vncserver
+[ -e ${FAKEROOT}/usr/bin/Xvnc ] || ln -svf $XORG_PREFIX/bin/Xvnc ${FAKEROOT}/usr/bin/Xvnc
+
+cat > ${FAKEROOT}/usr/share/applications/vncviewer.desktop << "EOF"
+[Desktop Entry]
+Type=Application
+Name=TigerVNC Viewer
+Comment=VNC client
+Exec=/usr/bin/vncviewer
+Icon=tigervnc
+Terminal=false
+StartupNotify=false
+Categories=Network;RemoteAccess;
+EOF
+
+#################
+} # END OF FILE #
+#################
+

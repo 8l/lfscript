@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.wireshark.org/download/src/all-versions/wireshark-1.12.0.tar.bz2"
+MD5SUMLIST="8dcfe451d8769901129809d2e19c1fb7"
+REQUIRES="glib2"
+TAGS="preinst"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cat > svnversion.h << "EOF"
+#define SVNVERSION "BLFS"
+#define SVNPATH "source"
+EOF
+
+cat > make-version.pl << "EOF"
+#!/usr/bin/perl
+EOF
+
+usermod -a -G wireshark <username>
+
+source setqt5
+
+source setqt4
+sed -i 's/Qt5 Qt/Qt/' configure
+
+./configure --prefix=/usr     \
+            --with-gtk3=yes   \
+            --with-qt=no      \
+            --sysconfdir=/etc
+make
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/wireshark-1.12.0
+install -v -m755 -d ${FAKEROOT}/usr/share/pixmaps/wireshark
+
+install -v -m644    README{,.linux} doc/README.* doc/*.{pod,txt} \
+                    ${FAKEROOT}/usr/share/doc/wireshark-1.12.0
+
+pushd ${FAKEROOT}/usr/share/doc/wireshark-1.12.0
+   for FILENAME in ../../wireshark/*.html; do
+      ln -s -v -f $FILENAME .
+   done
+popd
+
+install -v -m644 -D wireshark.desktop \
+                    ${FAKEROOT}/usr/share/applications/wireshark.desktop
+
+install -v -m644 -D image/wsicon48.png \
+                    ${FAKEROOT}/usr/share/pixmaps/wireshark.png
+
+install -v -m644    image/*.{png,ico,xpm,bmp} \
+                    ${FAKEROOT}/usr/share/pixmaps/wireshark
+
+install -v -m644 <Downloaded_Files> ${FAKEROOT}/usr/share/doc/wireshark-1.12.0
+
+chown -v root:wireshark ${FAKEROOT}/usr/bin/{tshark,dumpcap}
+chmod -v 6550 ${FAKEROOT}/usr/bin/{tshark,dumpcap}
+
+usermod -a -G wireshark <username>
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 62 wireshark
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+mv -v /usr/share/applications/wireshark.desktop \
+      /usr/share/applications/wireshark-qt.desktop
+
+cp -v /usr/share/applications/wireshark.desktop \
+      /usr/share/applications/wireshark-qt.desktop
+
+sed -e 's/ireshark/&-qt/' \
+    -e 's/^\(Icon=wireshark\)-qt/\1/' \
+    -i /usr/share/applications/wireshark-qt.desktop
+
+#################
+} # END OF FILE #
+#################
+

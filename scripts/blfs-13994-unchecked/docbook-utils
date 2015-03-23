@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://sources.redhat.com/pub/docbook-tools/new-trials/SOURCES/docbook-utils-0.6.14.tar.gz
+          http://www.linuxfromscratch.org/patches/blfs/svn/docbook-utils-0.6.14-grep_fix-1.patch"
+MD5SUMLIST="6b41b18c365c01f225bc417cf632d81c
+            dontverify"
+REQUIRES="docbook-dsssl openjade sgml-dtd-3"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../docbook-utils-0.6.14-grep_fix-1.patch
+sed -i 's:/html::' doc/HTML/Makefile.in
+
+./configure --prefix=/usr --mandir=/usr/share/man
+make
+
+make DESTDIR=${FAKEROOT} docdir=/usr/share/doc install
+
+for doctype in html ps dvi man pdf rtf tex texi txt
+do
+    ln -svf docbook2$doctype ${FAKEROOT}/usr/bin/db2$doctype
+done
+
+#################
+} # END OF FILE #
+#################
+

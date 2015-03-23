@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://download.berlios.de/slim/slim-1.3.2.tar.gz"
+MD5SUMLIST="dontverify"
+REQUIRES="libjpeg-turbo xorg"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed 's@png_ptr->jmpbuf@png_jmpbuf(png_ptr)@g' -i png.c
+sed 's@-lpng12@-lpng15@g' -i Makefile
+
+sed 's@~/.@/etc/X11/app-defaults/@g' -i slim.conf
+
+sed 's@/bin/slim@/sbin/slim@g' -i Makefile
+make
+
+make DESTDIR=${FAKEROOT} install
+
+cat > ${FAKEROOT}/etc/rc.d/init.d/slim << "EOF"
+#!/bin/sh
+# Written by Marcel van den Boer
+
+. /lib/lsb/init-functions
+
+case "$1" in
+    start)
+        log_info_msg "Starting the Slim Display Manager..."
+
+        # Update sessions list
+        if [ -r /etc/alternatives/xinitrc/functions ]; then
+            . /etc/alternatives/xinitrc/functions
+            SESSIONS="$(listSessions)"
+            sed "s@^sessions.*\$@sessions ${SESSIONS}@g" -i /etc/slim.conf
+        fi
+
+        /usr/sbin/slim -d
+        evaluate_retval
+        ;;
+
+    stop)
+        log_info_msg "Stopping the Slim Display Manager..."
+        killall slim || failed=1
+        killall X || failed=1
+
+        (exit ${failed})
+        evaluate_retval
+
+        rm -rf /var/run/slim.lock
+        ;;
+
+    restart)
+        ${0} stop
+        sleep 1
+        ${0} start
+        ;;
+
+    *)
+        echo "Usage: ${0} {start|stop|restart}"
+        exit 1
+        ;;
+esac
+EOF
+chmod 755 ${FAKEROOT}/etc/rc.d/init.d/slim
+
+for n in 0 1 2 3 4 6; do
+    ln -svf ../init.d/slim ${FAKEROOT}/etc/rc.d/rc${n}.d/K05slim
+done
+ln -svf ../init.d/slim ${FAKEROOT}/etc/rc.d/rc5.d/S95slim
+
+#################
+} # END OF FILE #
+#################
+

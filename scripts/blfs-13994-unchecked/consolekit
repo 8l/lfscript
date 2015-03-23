@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://anduin.linuxfromscratch.org/sources/BLFS/svn/c/ConsoleKit-0.4.6.tar.xz"
+MD5SUMLIST="6aaadf5627d2f7587aa116727e2fc1da"
+REQUIRES="dbus-glib x7lib"
+RECOMMENDS="polkit"
+
+# (*) Install 'polkit' because it avoids security problems
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --localstatedir=/var \
+            --enable-udev-acl    \
+            --enable-pam-module  \
+            --with-systemdsystemunitdir=no
+make
+
+make DESTDIR=${FAKEROOT} install
+
+cat >> ${FAKEROOT}/etc/pam.d/system-session << "EOF"
+# Begin ConsoleKit addition
+
+session   optional    pam_loginuid.so
+session   optional    pam_ck_connector.so nox11
+
+# End ConsoleKit addition
+EOF
+
+cat > ${FAKEROOT}/usr/lib/ConsoleKit/run-session.d/pam-foreground-compat.ck << "EOF"
+#!/bin/sh
+TAGDIR=/var/run/console
+
+[ -n "$CK_SESSION_USER_UID" ] || exit 1
+[ "$CK_SESSION_IS_LOCAL" = "true" ] || exit 0
+
+TAGFILE="$TAGDIR/`getent passwd $CK_SESSION_USER_UID | cut -f 1 -d:`"
+
+if [ "$1" = "session_added" ]; then
+    mkdir -p "$TAGDIR"
+    echo "$CK_SESSION_ID" >> "$TAGFILE"
+fi
+
+if [ "$1" = "session_removed" ] && [ -e "$TAGFILE" ]; then
+    sed -i "\%^$CK_SESSION_ID\$%d" "$TAGFILE"
+    [ -s "$TAGFILE" ] || rm -f "$TAGFILE"
+fi
+EOF
+chmod -v 755 ${FAKEROOT}/usr/lib/ConsoleKit/run-session.d/pam-foreground-compat.ck
+
+#################
+} # END OF FILE #
+#################
+

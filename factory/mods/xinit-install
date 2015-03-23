@@ -1,0 +1,60 @@
+# (*) Use a custom xinitrc system
+mkdir -pv /etc/alternatives/xinitrc
+
+mv -v /etc/X11/app-defaults/xinitrc \
+    /etc/alternatives/xinitrc/xinit.xinitrc
+
+cat > /etc/X11/app-defaults/xinitrc << "EOF"
+#!/bin/sh
+
+. /etc/alternatives/xinitrc/functions
+
+startSession "${1:-${DEFAULT_SESSION}}"
+EOF
+
+cat > /etc/alternatives/xinitrc/functions << "EOF"
+#!/bin/sh
+# Functions that list or load xinitrc files.
+# Written by Marcel van den Boer
+
+# This variable can be overridden by setting it in /etc/xinitrc.conf
+DEFAULT_SESSION="xinit"
+
+if [ -r /etc/xinitrc.conf ]; then
+    . /etc/xinitrc.conf
+fi
+
+# Lists all alternative *.xinitrc files with underscores replaced by spaces,
+# and the suffix '.xinitrc' removed. Entries are sepperated by comma's.
+# The default session is also listed first.
+# Designed for use by the bootscript for the Slim Display Manager.
+listSessions() {
+    pushd /etc/alternatives/xinitrc &> /dev/null || {
+        echo ""
+        return
+    }
+
+    for f in $(ls -1 *.xinitrc); do
+        local SESSIONS="${SESSIONS},\"$(echo ${f//_/ } | cut -d'.' -f1)\""
+    done
+
+    popd > /dev/null
+
+    local FIRST_SESSION="\"$(echo ${DEFAULT_SESSION//_/ } | cut -d'.' -f1)\""
+
+    echo "${FIRST_SESSION}${SESSIONS}"
+}
+
+# Loads the specified xinitrc file (as listed by 'listSessions()') or starts
+# TWM with a single XTerm if the session does not exist.
+startSession() {
+    local XINITRC="/etc/alternatives/xinitrc/${1// /_}.xinitrc"
+    if [ "${1}" != "" ] && [ -r "${XINITRC}" ]; then
+        . "${XINITRC}"
+    else
+        twm &
+        exec xterm -geometry 80x30+0+0 -title \
+                "Unable to load specified session. Type 'exit' to return."
+    fi
+}
+EOF

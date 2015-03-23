@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://roy.marples.name/downloads/dhcpcd/dhcpcd-6.4.3.tar.bz2
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="b22005c131e7108ecf598b6a4ac091eb
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --libexecdir=/lib/dhcpcd \
+            --dbdir=/var/tmp
+make
+
+make DESTDIR=${FAKEROOT} install
+
+includeBootscript service-dhcpcd
+
+cat > ${FAKEROOT}/etc/sysconfig/ifconfig.eth0 << "EOF"
+ONBOOT="yes"
+IFACE="eth0"
+SERVICE="dhcpcd"
+DHCP_START="-b -q "
+DHCP_STOP="-k"
+EOF
+
+# (*) Example configuration
+#cat > /etc/sysconfig/ifconfig.eth0 << "EOF"
+#ONBOOT="yes"
+#IFACE="eth0"
+#SERVICE="dhcpcd"
+#DHCP_START="-b -q -S ip_address=192.168.0.10/24 -S routers=192.168.0.1"
+#DHCP_STOP="-k"
+#EOF
+
+cat > ${FAKEROOT}/etc/resolv.conf.head << "EOF"
+# OpenDNS servers
+nameserver 208.67.222.222
+nameserver 208.67.220.220
+EOF
+
+#################
+} # END OF FILE #
+#################
+

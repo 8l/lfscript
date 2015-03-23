@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/mate-polkit-1.8.0.tar.xz"
+MD5SUMLIST="bd7dfb225e1ba6aac3c5752d496071d8"
+REQUIRES="gtk+2 gtk-doc mate-common polkit"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./autogen.sh --prefix=/usr \
+        --libexecdir=/usr/lib/polkit-mate \
+        --localstatedir=/var \
+        --sysconfdir=/etc/mate/1.8 \
+        --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

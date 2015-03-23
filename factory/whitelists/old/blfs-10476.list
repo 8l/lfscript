@@ -1,0 +1,177 @@
+# This document contains the names of scripts, which have been verified (or are
+# in the process of being verified) to work with the current version of
+# LFScript.
+#
+# During the verification process, there may be comments at the bottom of this
+# file, describing current issues.
+
+# --- X Window System --- #
+expat
+fontconfig
+freetype2
+glib2
+gperf
+intltool
+libatomic_ops
+libdrm
+libffi
+libpng
+libpthread-stubs
+libXau
+libxcb
+libXdmcp
+libxml2
+libxslt
+llvm
+makedepend
+mesalib
+openssl
+pcre
+pixman
+pkgconfig
+python2
+talloc
+util-macros
+x7app
+############################################################x7driver
+x7font
+x7lib
+x7proto
+############################################################x7server
+xcb-proto
+xcb-util
+############################################################xcursorthemes
+xkeyboard-config
+xterm
+
+# --- Mate/Gnome --- #
+alsa-lib
+atk
+cairo
+dbus
+desktop-file-utils
+docbook
+docbook-xsl
+gdk-pixbuf
+gobject-introspection
+gtk+2
+gtk-engines
+gvfs
+hicolor-icon-theme
+icon-naming-utils
+iso-codes
+libart_lgpl
+libcanberra
+libgcrypt
+libglade
+libgpg-error
+libidl
+libjpeg
+libogg
+############################################################libproxy
+librsvg
+libtasn1
+libtiff
+libusb
+libvorbis
+libxklavier
+pango
+polkit
+popt
+rarian
+shared-mime-info
+sqlite
+unzip
+upower
+wget
+which
+
+# --- Mate --- #
+cmake
+consolekit
+curl
+gtk-doc
+libarchive
+
+# --- Compiz --- #
+startup-notification
+
+# --- Incompatible versions --- #
+#libnotify (nm-applet) needs gtk+3
+#libsoup (Mate/Gnome) needs glib 2.31.6
+#libunique (Mate/Gnome) needs gtk+3
+#libwnck (Mate/Gnome) needs gtk+3
+
+# --- Lost Dependencies --- #
+#acl (Mate/Gnome)
+#nspr (NetworkManager)
+#nss (NetworkManager)
+#pciutils (Mate/Gnome)
+#ppp (NetworkManager)
+#usbutils (Mate/Gnome)
+
+# --- Gnome Unported --- #
+#audiofile
+#esound
+#gnome-applets
+#gnome-terminal
+#gnome-user-docs
+#libgtop
+#vte
+#xulrunner
+#yelp
+
+# --- Gnome Replaced --- #
+#gconf
+#gnome-backgrounds
+#gnome-control-center
+#gnome-desktop
+#gnome-doc-utils
+#gnome-icon-theme
+#gnome-keyring
+#gnome-menus
+#gnome-mime-data
+#gnome-panel
+#gnome-session
+#gnome-settings-daemon
+#gnome-themes
+#gnome-vfs
+#libbonobo
+#libbonoboui
+#libgnome
+#libgnomecanvas
+#libgnomekbd
+#libgnome-keyring
+#libgnomeui
+#libgweather
+#metacity
+#nautilus
+#orbit2
+#zenity
+
+# --- Live CD Build --- #
+############################################################cdrtools
+nasm
+
+# --- NetworkManager/nm-applet --- #
+gnutls
+iptables
+libnl
+nettle
+networkmanager
+wireless-tools
+
+# --- Other --- #
+dhcpcd
+alsa-utils
+attr
+firefox
+nano
+zip
+
+# --- FIXME's --- #
+# rarian --> scrollkeeper-rebuilddb ??
+# gnome-menus, desktop-file-utils --> XDG profile vars
+# gconf/mateconf --> schema dir ok?
+# dbus-uuidgen --> postinst now, or at all?
+

@@ -1,0 +1,141 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.mozilla.org/pub/mozilla.org/firefox/releases/31.0/source/firefox-31.0.source.tar.bz2"
+MD5SUMLIST="499b70a9f08a2291d528e87eaf8804a3"
+REQUIRES="alsa-lib gtk+2 unzip zip"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cat > mozconfig << "EOF"
+# If you have a multicore machine, firefox will now use all the cores by
+# default. Exceptionally, you can reduce the number of cores, e.g. to 1,
+# by uncommenting the next line and setting a valid number of CPU cores.
+#mk_add_options MOZ_MAKE_FLAGS="-j1"
+
+# If you have installed DBus-Glib comment out this line:
+ac_add_options --disable-dbus
+
+# If you have installed dbus-glib, and you have installed (or will install)
+# wireless-tools, and you wish to use geolocation web services, comment out
+# this line
+ac_add_options --disable-necko-wifi
+
+# If you have installed libnotify comment out this line:
+ac_add_options --disable-libnotify
+
+# GStreamer is necessary for H.264 video playback in HTML5 Video Player;
+# to be enabled, also remember to set "media.gstreamer.enabled" to "true"
+# in about:config. If you have GStreamer 0.x.y, uncomment this line:
+#ac_add_options --enable-gstreamer
+# or uncomment this line, if you have GStreamer 1.x.y
+#ac_add_options --enable-gstreamer=1.0
+
+# Uncomment these lines if you have installed optional dependencies:
+#ac_add_options --enable-system-hunspell
+#ac_add_options --enable-startup-notification
+
+# Comment out following option if you have PulseAudio installed
+ac_add_options --disable-pulseaudio
+
+# If you have not installed Yasm then uncomment this line:
+#ac_add_options --disable-webm
+
+# If you have installed xulrunner uncomment the next two ac_add_options lines
+# and check that the sdk will be set by running pkg-config in a subshell
+# and has not become hardcoded or empty when you created this file
+#ac_add_options --with-system-libxul
+#ac_add_options --with-libxul-sdk=$(pkg-config --variable=sdkdir libxul)
+
+# Comment out following options if you have not installed
+# recommended dependencies:
+ac_add_options --enable-system-sqlite
+ac_add_options --with-system-libevent
+ac_add_options --with-system-libvpx
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
+ac_add_options --with-system-icu
+
+# The BLFS editors recommend not changing anything below this line:
+ac_add_options --prefix=/usr
+ac_add_options --enable-application=browser
+
+ac_add_options --disable-crashreporter
+ac_add_options --disable-updater
+ac_add_options --disable-tests
+
+ac_add_options --enable-optimize
+ac_add_options --enable-strip
+ac_add_options --enable-install-strip
+
+ac_add_options --enable-gio
+ac_add_options --enable-official-branding
+ac_add_options --enable-safe-browsing
+ac_add_options --enable-url-classifier
+
+ac_add_options --enable-system-cairo
+ac_add_options --enable-system-ffi
+ac_add_options --enable-system-pixman
+
+ac_add_options --with-pthreads
+
+ac_add_options --with-system-bz2
+ac_add_options --with-system-jpeg
+ac_add_options --with-system-png
+ac_add_options --with-system-zlib
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/firefox-build-dir
+EOF
+
+make -f client.mk
+
+make DESTDIR=${FAKEROOT} -f client.mk install INSTALL_SDK=
+
+mkdir -pv ${FAKEROOT}/usr/lib/mozilla/plugins
+ln -sfv ../mozilla/plugins ${FAKEROOT}/usr/lib/firefox-31.0
+
+make DESTDIR=${FAKEROOT} -C firefox-build-dir install
+ln -sfv ../lib/firefox-31.0/firefox ${FAKEROOT}/usr/bin
+ln -sfv ../xulrunner-31.0 ${FAKEROOT}/usr/lib/firefox-31.0/xulrunner
+
+mkdir -pv ${FAKEROOT}/usr/lib/mozilla/plugins
+ln -sfv ../mozilla/plugins ${FAKEROOT}/usr/lib/firefox-31.0
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+mkdir -pv /usr/share/applications
+mkdir -pv /usr/share/pixmaps
+
+cat > /usr/share/applications/firefox.desktop << "EOF"
+[Desktop Entry]
+Encoding=UTF-8
+Name=Firefox Web Browser
+Comment=Browse the World Wide Web
+GenericName=Web Browser
+Exec=firefox %u
+Terminal=false
+Type=Application
+Icon=firefox
+Categories=GNOME;GTK;Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;application/vnd.mozilla.xul+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;
+StartupNotify=true
+EOF
+
+ln -sfv /usr/lib/firefox-31.0/browser/icons/mozicon128.png \
+        /usr/share/pixmaps/firefox.png
+
+#################
+} # END OF FILE #
+#################
+

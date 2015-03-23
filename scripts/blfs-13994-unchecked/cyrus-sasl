@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-2.1.26.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/cyrus-sasl-2.1.26-fixes-1.patch"
+MD5SUMLIST="a7f4e5e559a0e37b3ffc438c9456e425
+            179a6c22d0f7d2619cba4eb794fdc1cb
+            dontverify"
+REQUIRES="openssl"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../cyrus-sasl-2.1.26-fixes-1.patch
+autoreconf -fi
+pushd saslauthd
+autoreconf -fi
+popd
+./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --enable-auth-sasldb \
+            --with-dbpath=/var/lib/sasl/sasldb2 \
+            --with-saslauthd=/var/run/saslauthd \
+            CFLAGS=-fPIC
+make -j1
+
+make DESTDIR=${FAKEROOT} install
+install -v -dm755 ${FAKEROOT}/usr/share/doc/cyrus-sasl-2.1.26
+install -v -m644  doc/{*.{html,txt,fig},ONEWS,TODO} \
+    saslauthd/LDAP_SASLAUTHD ${FAKEROOT}/usr/share/doc/cyrus-sasl-2.1.26
+install -v -dm700 ${FAKEROOT}/var/lib/sasl
+
+includeBootscript saslauthd
+
+#################
+} # END OF FILE #
+#################
+

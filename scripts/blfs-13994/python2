@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.python.org/ftp/python/2.7.8/Python-2.7.8.tar.xz
+          http://docs.python.org/ftp/python/doc/2.7.8/python-2.7.8-docs-html.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/Python-2.7.8-skip_test_gdb-1.patch"
+MD5SUMLIST="d235bdfa75b8396942e360a70487ee00
+            2cf9ba96b2723a5268cd14432b15fdcf
+            dfc90877875b9ae6d06a379d88a24a03"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr       \
+            --enable-shared     \
+            --with-system-expat \
+            --with-system-ffi   \
+            --enable-unicode=ucs4
+make
+
+patch -Np1 -i ../Python-2.7.8-skip_test_gdb-1.patch
+
+make DESTDIR=${FAKEROOT} install
+chmod -v 755 ${FAKEROOT}/usr/lib/libpython2.7.so.1.0
+
+install -v -dm755 ${FAKEROOT}/usr/share/doc/python-2.7.8
+tar --strip-components=1 -C ${FAKEROOT}/usr/share/doc/python-2.7.8 \
+    --no-same-owner -xvf ../python-2.7.8-docs-html.tar.bz2
+find ${FAKEROOT}/usr/share/doc/python-2.7.8 -type d -exec chmod 0755 {} \;
+find ${FAKEROOT}/usr/share/doc/python-2.7.8 -type f -exec chmod 0644 {} \;
+
+cat > ${FAKEROOT}/etc/profile.d/python2.sh << "EOF"
+export PYTHONDOCS=/usr/share/doc/python-2.7.8
+EOF
+
+#################
+} # END OF FILE #
+#################
+

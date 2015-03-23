@@ -1,0 +1,2 @@
+# (*) Update the MIME database
+update-mime-database /usr/share/mime

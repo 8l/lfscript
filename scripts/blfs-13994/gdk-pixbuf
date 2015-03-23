@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.30/gdk-pixbuf-2.30.8.tar.xz"
+MD5SUMLIST="4fed0d54432f1b69fc6e66e608bd5542"
+REQUIRES="glib2 libjpeg-turbo libpng libtiff"
+RECOMMENDS="gobject-introspection xorg"
+POSTINST="now"
+
+# (*) Install 'gobject-introspection' because it avoids compilation order problems when building Gnome
+# (*) Install 'xorg' because many GTK+ applications require gdk-pixbuf-xlib
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --with-x11
+make
+
+make DESTDIR=${FAKEROOT} install
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+gdk-pixbuf-query-loaders --update-cache
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="https://www.kernel.org/pub/linux/utils/kbd/kbd-2.0.2.tar.gz
+          http://www.linuxfromscratch.org/patches/lfs/development/kbd-2.0.2-backspace-1.patch"
+MD5SUMLIST="ba56fb5bfd44acea83fc5dac4a9b7f15
+            f75cca16a38da6caa7d52151f7136895"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../kbd-2.0.2-backspace-1.patch
+
+sed -i 's/\(RESIZECONS_PROGS=\)yes/\1no/g' configure
+sed -i 's/resizecons.8 //' docs/man/man8/Makefile.in
+
+PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr --disable-vlock
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+mkdir -v       ${FAKEROOT}/usr/share/doc/kbd-2.0.2
+cp -R -v docs/doc/* ${FAKEROOT}/usr/share/doc/kbd-2.0.2
+
+#################
+} # END OF FILE #
+#################
+

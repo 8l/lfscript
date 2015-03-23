@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://gstreamer.freedesktop.org/src/gst-plugins-ugly/gst-plugins-ugly-0.10.19.tar.xz
+          http://www.linuxfromscratch.org/patches/blfs/svn/gst-plugins-ugly-0.10.19-libcdio_fixes-1.patch"
+MD5SUMLIST="ba26045c8c8c91f0d48d327ccf53ac0c
+            dontverify"
+REQUIRES="gst-plugins-base"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../gst-plugins-ugly-0.10.19-libcdio_fixes-1.patch
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+make DESTDIR=${FAKEROOT} -C docs/plugins install-data
+
+#################
+} # END OF FILE #
+#################
+

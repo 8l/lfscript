@@ -1,0 +1,68 @@
+#!/bin/bash
+# This script merges Live CD images for different architectures into a single
+# multi-arch ISO image.
+set -e
+
+build() {
+    local LANG="en_US"
+    local DATESTAMP="$(date +%C%y%b%d)"
+    local CD_LABEL="FSOS_${DATESTAMP,,}"
+    local ARCHS="i486 x86_64"
+
+    # Verify that 'root' is running the script
+    if [ "$(whoami)" != "root" ]; then
+        echo "ERROR: Script must be run by root."
+        exit 1
+    fi
+
+    # Verify that the source images have been created
+    for arch in ${ARCHS}; do
+        if [ ! -r ../packages-${arch}/system-${arch}.iso ]; then
+            echo "ERROR: Cannot access the ${arch} ISO image." >&2
+            exit 1
+        fi
+    done
+
+    echo "Merging ISO images (${ARCHS}) --> ${CD_LABEL}"
+
+    # Create workspace
+    rm -rf merge_cds.tmp
+    mkdir -p merge_cds.tmp/image_root
+    cd merge_cds.tmp
+
+    # Extract the source images
+    for arch in ${ARCHS}; do
+        echo "* Extracting ${arch} ISO image..." >&2
+
+        mkdir source.${arch}
+        mount -o loop ../../packages-${arch}/system-${arch}.iso source.${arch}
+
+        cp -R source.${arch}/* image_root
+
+        umount source.${arch}
+        rm -rf source.${arch}
+    done
+
+    rm -rf image_root/boot/isolinux/boot.cat
+
+    # Write the new image
+    echo "* Writing the new image..." >&2
+
+    mkisofs -o ../../system-multi.iso     \
+            -b boot/isolinux/isolinux.bin \
+            -c boot/isolinux/boot.cat     \
+            -no-emul-boot                 \
+            -boot-load-size 4             \
+            -boot-info-table              \
+            -joliet -l -R                 \
+            -V ${CD_LABEL}                \
+            image_root
+
+    cd ../
+    rm -rf merge_cds.tmp
+
+    echo "Done!"
+}
+
+build
+

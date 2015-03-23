@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http:///ftp.mozilla.org/pub/mozilla.org/firefox/releases/31.0/source/firefox-31.0.source.tar.bz2"
+MD5SUMLIST="499b70a9f08a2291d528e87eaf8804a3"
+REQUIRES="alsa-lib gtk+2 unzip zip"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cat > mozconfig << "EOF"
+# If you have a multicore machine, firefox will now use all the cores by
+# default. Exceptionally, you can reduce the number of cores, e.g. to 1,
+# by uncommenting the next line and setting a valid number of CPU cores.
+#mk_add_options MOZ_MAKE_FLAGS="-j1"
+
+# If you have installed DBus-Glib comment out this line:
+ac_add_options --disable-dbus
+
+# If you have installed dbus-glib, and you have installed (or will install)
+# wireless-tools, and you wish to use geolocation web services, comment out
+# this line
+ac_add_options --disable-necko-wifi
+
+# If you have installed libnotify comment out this line:
+ac_add_options --disable-libnotify
+
+# GStreamer is necessary for H.264 video playback in HTML5 Video Player;
+# to be enabled, also remember to set "media.gstreamer.enabled" to "true"
+# in about:config. If you have GStreamer 0.x.y, uncomment this line:
+#ac_add_options --enable-gstreamer
+# or uncomment this line, if you have GStreamer 1.x.y
+#ac_add_options --enable-gstreamer=1.0
+
+# Uncomment these lines if you have installed optional dependencies:
+#ac_add_options --enable-system-hunspell
+#ac_add_options --enable-startup-notification
+
+# Comment out following option if you have PulseAudio installed
+ac_add_options --disable-pulseaudio
+
+# If you have not installed Yasm then uncomment this line:
+#ac_add_options --disable-webm
+
+# Comment out following options if you have not installed
+# recommended dependencies:
+ac_add_options --enable-system-sqlite
+ac_add_options --with-system-libevent
+ac_add_options --with-system-libvpx
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
+ac_add_options --with-system-icu
+
+# The BLFS editors recommend not changing anything below this line:
+ac_add_options --prefix=/usr
+ac_add_options --enable-application=xulrunner
+
+ac_add_options --disable-crashreporter
+ac_add_options --disable-updater
+ac_add_options --disable-tests
+
+ac_add_options --enable-optimize
+ac_add_options --enable-strip
+ac_add_options --enable-install-strip
+
+ac_add_options --enable-system-cairo
+ac_add_options --enable-system-ffi
+ac_add_options --enable-system-pixman
+
+ac_add_options --enable-shared-js
+ac_add_options --with-pthreads
+
+ac_add_options --with-system-bz2
+ac_add_options --with-system-jpeg
+ac_add_options --with-system-png
+ac_add_options --with-system-zlib
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/xulrunner-build-dir
+EOF
+
+sed -i '/^template class/s/JS::WeakMapPtr/JS_PUBLIC_API(&)/' \
+       js/src/vm/WeakMapPtr.cpp
+make -f client.mk
+
+make DESTDIR=${FAKEROOT} -C xulrunner-build-dir install
+
+mkdir -pv ${FAKEROOT}/usr/lib/mozilla/plugins
+rm -rf ${FAKEROOT}/usr/lib/xulrunner-31.0/plugins
+ln -sv ../mozilla/plugins ${FAKEROOT}/usr/lib/xulrunner-31.0
+
+chmod -v 755 ${FAKEROOT}/usr/lib/xulrunner-devel-31.0/sdk/bin/xpcshell
+
+for library in libmozalloc.so libmozjs.so libxul.so; do
+    ln -sfv ../../../xulrunner-31.0/$library \
+            ${FAKEROOT}/usr/lib/xulrunner-devel-31.0/sdk/lib/$library
+    ln -sfv xulrunner-31.0/$library ${FAKEROOT}/usr/lib/$library
+done
+
+ln -sfv ../xulrunner-devel-31.0/sdk/bin/run-mozilla.sh \
+        ${FAKEROOT}/usr/lib/xulrunner-31.0
+ln -sfv ../xulrunner-devel-31.0/sdk/bin/xpcshell \
+        ${FAKEROOT}/usr/lib/xulrunner-31.0
+
+#################
+} # END OF FILE #
+#################
+

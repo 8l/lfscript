@@ -1,0 +1,38 @@
+diff -rupN old/BOOK/gnome/platform/dconf.xml new/BOOK/gnome/platform/dconf.xml
+--- old/BOOK/gnome/platform/dconf.xml	2014-07-27 04:17:12.000000000 +0200
++++ new/BOOK/gnome/platform/dconf.xml	2014-07-30 01:08:15.556558832 +0200
+@@ -76,13 +76,20 @@
+     <bridgehead renderas="sect4">Required</bridgehead>
+     <para role="required">
+       <xref linkend="dbus"/>,
+-      <xref linkend="gtk3"/>, and
+       <xref linkend="libxml2"/>
++
++      <!-- (*) Also required when using default instructions: -->
++      <xref linkend="libxslt"/>
++      <xref linkend="glib2"/>
++      <xref linkend="docbook-xsl"/>
+     </para>
+ 
+     <bridgehead renderas="sect4">Recommended</bridgehead>
+     <para role="recommended">
+       <xref linkend="vala"/>
++
++      <!-- (*) GTK+3 is not required when the 'disable-editor' option is used -->
++      <xref linkend="gtk3"/>
+     </para>
+ 
+     <bridgehead renderas="sect4">Optional</bridgehead>
+@@ -103,8 +110,11 @@
+       commands:
+     </para>
+ 
++<!--(*) Disable build of DConf Editor, because this removes the GTK+3
++        requirement. -->
+ <screen><userinput>./configure --prefix=/usr     \
+-            --sysconfdir=/etc &amp;&amp;
++            --sysconfdir=/etc \
++            --disable-editor &amp;&amp;
+ make</userinput></screen>
+ 
+     <para>

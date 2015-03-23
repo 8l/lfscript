@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/mate-panel-1.8.0.tar.xz"
+MD5SUMLIST="fe1a3ff81a5d12cdbb8f3882cbb4f188"
+REQUIRES="dbus-glib libcanberra libmateweather librsvg libwnck2 mate-desktop mate-menus"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./autogen.sh --prefix=/usr \
+        --sysconfdir=/etc/mate/1.8 \
+        --localstatedir=/var \
+        --libexecdir=/usr/lib/mate-panel \
+        --mandir=/usr/share/man \
+        --disable-static \
+        --enable-introspection
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://download.savannah.gnu.org/releases/attr/attr-2.4.47.src.tar.gz"
+MD5SUMLIST="84f58dec00b60f2dc8fd1c9709291cc7"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i -e 's|/@pkg_name@|&-@pkg_version@|' include/builddefs.in
+
+./configure --prefix=/usr --bindir=/bin
+
+make
+
+make prefix=${FAKEROOT}/usr install install-dev install-lib
+chmod -v 755 ${FAKEROOT}/usr/lib/libattr.so
+
+mv -v ${FAKEROOT}/usr/lib/libattr.so.* ${FAKEROOT}/lib
+ln -sfv ../../lib/$(readlink ${FAKEROOT}/usr/lib/libattr.so) ${FAKEROOT}/usr/lib/libattr.so
+
+#################
+} # END OF FILE #
+#################
+

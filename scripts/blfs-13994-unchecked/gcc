@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/gnu/gcc/gcc-4.9.1/gcc-4.9.1.tar.bz2"
+MD5SUMLIST="fddf71348546af523353bd43d34919c1"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's/if \((code.*))\)/if (\1 \&\& \!DEBUG_INSN_P (insn))/' gcc/sched-deps.c
+
+mkdir ../gcc-build
+cd    ../gcc-build
+
+../gcc-4.9.1/configure                               \
+    --prefix=/usr                                    \
+    --libdir=/usr/lib                                \
+    --enable-shared                                  \
+    --enable-threads=posix                           \
+    --enable-__cxa_atexit                            \
+    --enable-clocale=gnu                             \
+    --disable-multilib                               \
+    --with-system-zlib                               \
+    --enable-languages=c,c++,fortran,go,objc,obj-c++
+make
+
+ulimit -s 32768
+make -k check
+
+../gcc-4.9.1/contrib/test_summary
+
+make DESTDIR=${FAKEROOT} install
+
+mkdir -pv ${FAKEROOT}/usr/share/gdb/auto-load/usr/lib
+mv -v ${FAKEROOT}/usr/lib/*gdb.py ${FAKEROOT}/usr/share/gdb/auto-load/usr/lib
+
+chown -v -R root:root \
+    ${FAKEROOT}/usr/lib/gcc/*linux-gnu/4.9.1/include{,-fixed}
+
+ln -v -sf ../usr/bin/cpp ${FAKEROOT}/lib
+ln -v -sf gcc ${FAKEROOT}/usr/bin/cc
+
+#################
+} # END OF FILE #
+#################
+

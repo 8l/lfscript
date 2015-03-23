@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.dovecot.org/releases/2.2/dovecot-2.2.13.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="a3eb1c0b1822c4f2b0fe9247776baa71
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+TAGS="preinst"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --localstatedir=/var \
+            --docdir=/usr/share/doc/dovecot-2.2.13 \
+            --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+
+sed -i '/^\!include ${FAKEROOT}/ s/^/#/' ${FAKEROOT}/etc/dovecot/dovecot.conf
+chmod -v 1777 ${FAKEROOT}/var/mail
+cat > ${FAKEROOT}/etc/dovecot/local.conf << "EOF"
+protocols = imap
+ssl = no
+# The next line is only needed if you have no IPv6 network interfaces
+listen = *
+mail_location = mbox:~/Mail:INBOX=/var/mail/%u
+userdb {
+  driver = passwd
+}
+passdb {
+  driver = shadow
+}
+EOF
+
+includeBootscript dovecot
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 42 dovecot
+useradd -c "Dovecot unprivileged user" -d /dev/null -u 42 \
+        -g dovecot -s /bin/false dovecot
+groupadd -g 43 dovenull
+useradd -c "Dovecot login user" -d /dev/null -u 43 \
+        -g dovenull -s /bin/false dovenull
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+cp -rv /usr/share/doc/dovecot-2.2.13/example-config/* /etc/dovecot
+
+#################
+} # END OF FILE #
+#################
+

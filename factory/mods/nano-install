@@ -1,0 +1,2 @@
+# (*) Configure and use sample configuration
+cp -v /etc/nanorc{.sample,}

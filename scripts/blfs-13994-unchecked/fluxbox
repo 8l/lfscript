@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/fluxbox/fluxbox-1.3.5.tar.bz2"
+MD5SUMLIST="9d9e183424a0934e20417ff20775a570"
+REQUIRES="xorg"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+echo startfluxbox > ${FAKEROOT}/etc/alternatives/xinitrc/fluxbox.xinitrc
+
+cat > ${FAKEROOT}/usr/share/xsessions/fluxbox.desktop << "EOF"
+[Desktop Entry]
+Encoding=UTF-8
+Name=Fluxbox
+Comment=This session logs you into Fluxbox
+Exec=startfluxbox
+Type=Application
+EOF
+
+mkdir -v ${FAKEROOT}/etc/skel/.fluxbox
+cp -v ${FAKEROOT}/usr/share/fluxbox/init ${FAKEROOT}/etc/skel/.fluxbox/init
+cp -v ${FAKEROOT}/usr/share/fluxbox/keys ${FAKEROOT}/etc/skel/.fluxbox/keys
+
+# (*) Example configuration
+#cd ~/.fluxbox
+#fluxbox-generate_menu
+
+cp -v ${FAKEROOT}/usr/share/fluxbox/menu ${FAKEROOT}/etc/skel/.fluxbox/menu
+
+# (*) Example configuration
+#cp /usr/share/fluxbox/styles/<theme> ~/.fluxbox/theme
+#sed -i 's,\(session.styleFile:\).*,\1 ~/.fluxbox/theme,' ~/.fluxbox/init
+#echo "background.pixmap: </path/to/nice/image.xpm>" >> ~/.fluxbox/theme
+
+#################
+} # END OF FILE #
+#################
+

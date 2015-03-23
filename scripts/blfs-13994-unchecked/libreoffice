@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://download.documentfoundation.org/libreoffice/src/4.3.0/libreoffice-4.3.0.4.tar.xz
+          http://download.documentfoundation.org/libreoffice/src/4.3.0/libreoffice-dictionaries-4.3.0.4.tar.xz
+          http://download.documentfoundation.org/libreoffice/src/4.3.0/libreoffice-help-4.3.0.4.tar.xz
+          http://download.documentfoundation.org/libreoffice/src/4.3.0/libreoffice-translations-4.3.0.4.tar.xz
+          http://www.linuxfromscratch.org/patches/blfs/svn/libreoffice-4.3.0.4-gcc_4_9_0-1.patch"
+MD5SUMLIST="de0d9322f3aaeb20abd5e06c5c0972bb
+            dontverify
+            dontverify
+            dontverify
+            dontverify"
+REQUIRES="perl-archive-zip unzip wget which zip"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xf libreoffice-4.3.0.4.tar.xz --no-overwrite-dir
+cd libreoffice-4.3.0.4
+
+install -dm755 external/tarballs
+
+tar -xf ../libreoffice-dictionaries-4.3.0.4.tar.xz --no-overwrite-dir --strip-components=1
+
+ln -sv ../../libreoffice-dictionaries-4.3.0.4.tar.xz external/tarballs/
+ln -sv ../../libreoffice-help-4.3.0.4.tar.xz external/tarballs/
+
+ln -sv ../../libreoffice-translations-4.3.0.4.tar.xz external/tarballs/
+
+export LO_PREFIX=<PREFIX>
+
+patch -Np1 -i ../libreoffice-4.3.0.4-gcc_4_9_0-1.patch
+
+sed -e "/gzip -f/d"   \
+    -e "s|.1.gz|.1|g" \
+    -i bin/distro-install-desktop-integration
+sed -e "/distro-install-file-lists/d" -i Makefile.in
+
+sed -e "/distro-install-file-lists/d"           \
+    -e "s:fetch_Download_item:&_unchecked:" \
+    -e "/fetch_Download_item/s:,no-check::"     \
+   -i Makefile.in
+
+chmod -v +x bin/unpack-sources
+sed -e "s/target\.mk/langlist\.mk/"                \
+    -e "s/tar -xf/tar -x --strip-components=1 -f/" \
+    -e "/tar -x/s/lo_src_dir/start_dir/"           \
+    -i bin/unpack-sources
+
+./autogen.sh --prefix=$LO_PREFIX         \
+             --sysconfdir=/etc           \
+             --with-vendor="BLFS"        \
+             --with-lang="en-US pt-BR"   \
+             --with-help                 \
+             --with-alloc=system         \
+             --without-java              \
+             --disable-gconf             \
+             --disable-odk               \
+             --disable-postgresql-sdbc   \
+             --enable-release-build=yes  \
+             --enable-python=system      \ 
+             --with-system-clucene       \
+             --with-system-cairo         \
+             --with-system-curl          \
+             --with-system-expat         \
+             --with-system-graphite      \
+             --with-system-harfbuzz      \
+             --with-system-icu           \
+             --with-system-jpeg          \
+             --with-system-lcms2         \
+             --with-system-libpng        \
+             --with-system-libxml        \
+             --with-system-mesa-headers  \
+             --with-system-neon          \
+             --with-system-npapi-headers \
+             --with-system-nss           \
+             --with-system-odbc          \
+             --with-system-openldap      \
+             --with-system-openssl       \
+             --with-system-poppler       \
+             --with-system-redland       \
+             --with-system-zlib          \
+             --with-parallelism=$(getconf _NPROCESSORS_ONLN)
+
+make build
+
+make DESTDIR=${FAKEROOT} distro-pack-install
+install -v -m755 -d $LO_PREFIX/share/appdata
+install -v -m644    sysui/desktop/appstream-appdata/*.xml \
+                    $LO_PREFIX/share/appdata
+
+chown -cR 0:0 dictionaries/
+mkdir -pv $LO_PREFIX/lib/libreoffice/share/extensions/dict-en
+cp -vR dictionaries/en/*    $LO_PREFIX/lib/libreoffice/share/extensions/dict-en
+mkdir -pv $LO_PREFIX/lib/libreoffice/share/extensions/dict-pt-BR
+cp -vR dictionaries/pt_BR/* $LO_PREFIX/lib/libreoffice/share/extensions/dict-pt-BR
+
+mkdir -pv ${FAKEROOT}/usr/share/pixmaps
+for i in writer base calc draw impress math startcenter writer
+do
+  ln -svf /opt/libreoffice-4.3.0.4/share/icons/hicolor/32x32/apps/libreoffice-$i.png \
+          ${FAKEROOT}/usr/share/pixmaps/
+done
+unset i
+
+#################
+} # END OF FILE #
+#################
+

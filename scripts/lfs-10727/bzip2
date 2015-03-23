@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
+          http://www.linuxfromscratch.org/patches/lfs/development/bzip2-1.0.6-install_docs-1.patch"
+MD5SUMLIST="00b516f4704d4a7cb50a1d97e6e8e15b
+            6a5ac7e89b791aae556de0f745916f7f"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../bzip2-1.0.6-install_docs-1.patch
+
+sed -i 's@\(ln -s -f \)$(PREFIX)/bin/@\1@' Makefile
+
+sed -i "s@(PREFIX)/man@(PREFIX)/share/man@g" Makefile
+
+make -f Makefile-libbz2_so
+make clean
+
+make
+
+make PREFIX=${FAKEROOT}/usr install
+
+cp -v bzip2-shared ${FAKEROOT}/bin/bzip2
+cp -av libbz2.so* ${FAKEROOT}/lib
+ln -sv ../../lib/libbz2.so.1.0 ${FAKEROOT}/usr/lib/libbz2.so
+rm -v ${FAKEROOT}/usr/bin/{bunzip2,bzcat,bzip2}
+ln -sv bzip2 ${FAKEROOT}/bin/bunzip2
+ln -sv bzip2 ${FAKEROOT}/bin/bzcat
+
+######################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+######################################################
+
+make
+
+make PREFIX=/tools install
+
+#################
+} # END OF FILE #
+#################
+

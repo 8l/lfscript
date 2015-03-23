@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.abisource.com/downloads/abiword/3.0.0/source/abiword-3.0.0.tar.gz
+          http://www.abisource.com/downloads/abiword/3.0.0/source/abiword-docs-3.0.0.tar.gz
+          http://www.linuxfromscratch.org/patches/blfs/svn/abiword-3.0.0-libgcrypt_1_6_0-1.patch"
+MD5SUMLIST="8d9c41cff3a8fbef8d0c835c65600e65
+            dontverify
+            dontverify"
+REQUIRES="boost fribidi goffice010 wv"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../abiword-3.0.0-libgcrypt_1_6_0-1.patch
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+tar -xf ../abiword-docs-3.0.0.tar.gz
+cd abiword-docs-3.0.0
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -m750 -d ${FAKEROOT}/etc/skel/.AbiSuite/templates
+install -v -m640    ${FAKEROOT}/usr/share/abiword-3.0/templates/normal.awt-<lang> \
+                    ${FAKEROOT}/etc/skel/.AbiSuite/templates/normal.awt
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+ls /usr/share/abiword-3.0/templates
+
+#################
+} # END OF FILE #
+#################
+

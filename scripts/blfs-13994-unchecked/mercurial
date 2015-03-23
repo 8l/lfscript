@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://mercurial.selenic.com/release/mercurial-3.1.tar.gz"
+MD5SUMLIST="d3916736a9d356899191409e546b5964"
+REQUIRES="python2"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+make build
+
+make doc
+
+# (*) Don't run test suites.
+#cat > tests/blacklists/test-failed << "EOF"
+## Failure with Python-2.7.8
+#  test-patchbomb.t
+#EOF
+#rm -rf tests/tmp
+#TESTFLAGS="--tmpdir tmp --blacklist blacklists/test-failed" \
+#make check
+
+make DESTDIR=${FAKEROOT} PREFIX=/usr install-bin
+
+make DESTDIR=${FAKEROOT} PREFIX=/usr install-doc
+
+cat >> ~/.hgrc << "EOF"
+[ui]
+username = <user_name> <your@mail>
+EOF
+
+install -v -d -m755 ${FAKEROOT}/etc/mercurial
+cat > ${FAKEROOT}/etc/mercurial/hgrc << "EOF"
+[web]
+cacerts = /etc/ssl/ca-bundle.crt
+EOF
+
+#################
+} # END OF FILE #
+#################
+

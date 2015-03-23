@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://www.zlib.net/zlib-1.2.8.tar.xz"
+MD5SUMLIST="28f1205d8dd2001f26fec1e8c2cebe37"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+mv -v ${FAKEROOT}/usr/lib/libz.so.* ${FAKEROOT}/lib
+ln -sfv ../../lib/$(readlink ${FAKEROOT}/usr/lib/libz.so) ${FAKEROOT}/usr/lib/libz.so
+
+#################
+} # END OF FILE #
+#################
+

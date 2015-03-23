@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.python.org/ftp/python/3.4.1/Python-3.4.1.tar.xz
+          http://docs.python.org/3/archives/python-3.4.1-docs-html.tar.bz2"
+MD5SUMLIST="6cafc183b4106476dd73d5738d7f616a
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+CXX="/usr/bin/g++"              \
+./configure --prefix=/usr       \
+            --enable-shared     \
+            --with-system-expat \
+            --with-system-ffi   \
+            --without-ensurepip
+make
+
+make DESTDIR=${FAKEROOT} install
+chmod -v 755 ${FAKEROOT}/usr/lib/libpython3.4m.so
+chmod -v 755 ${FAKEROOT}/usr/lib/libpython3.so
+
+install -v -dm755 ${FAKEROOT}/usr/share/doc/python-3.4.1/html
+tar --strip-components=1 \
+    --no-same-owner \
+    --no-same-permissions \
+    -C ${FAKEROOT}/usr/share/doc/python-3.4.1/html \
+    -xvf ../python-3.4.1-docs-html.tar.bz2
+
+cat > ${FAKEROOT}/etc/profile.d/python3.sh << "EOF"
+export PYTHONDOCS=/usr/share/doc/python-3.4.1/html
+EOF
+
+#################
+} # END OF FILE #
+#################
+

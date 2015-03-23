@@ -1,0 +1,177 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu/gcc/gcc-4.9.1/gcc-4.9.1.tar.bz2
+          http://ftp.gnu.org/gnu//gmp/gmp-6.0.0a.tar.xz
+          http://www.mpfr.org/mpfr-3.1.2/mpfr-3.1.2.tar.xz
+          http://www.multiprecision.org/mpc/download/mpc-1.0.2.tar.gz"
+MD5SUMLIST="fddf71348546af523353bd43d34919c1
+            1e6da4e434553d2811437aa42c7f7c76
+            e3d203d188b8fe60bb6578dd3152e05c
+            68fadff3358fb3e7976c7a398a0af4c3"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's/if \((code.*))\)/if (\1 \&\& \!DEBUG_INSN_P (insn))/' gcc/sched-deps.c
+
+mkdir -v ../gcc-build
+cd ../gcc-build
+
+SED=sed                       \
+../gcc-4.9.1/configure        \
+     --prefix=/usr            \
+     --enable-languages=c,c++ \
+     --disable-multilib       \
+     --disable-bootstrap      \
+     --with-system-zlib
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+ln -sv ../usr/bin/cpp ${FAKEROOT}/lib
+
+ln -sv gcc ${FAKEROOT}/usr/bin/cc
+
+install -v -dm755 ${FAKEROOT}/usr/lib/bfd-plugins
+ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/4.9.1/liblto_plugin.so ${FAKEROOT}/usr/lib/bfd-plugins/
+
+mkdir -pv ${FAKEROOT}/usr/share/gdb/auto-load/usr/lib
+mv -v ${FAKEROOT}/usr/lib/*gdb.py ${FAKEROOT}/usr/share/gdb/auto-load/usr/lib
+
+#####################################################################
+}; preparation_pass1() { # CONSTRUCTING A TEMPORARY SYSTEM (PASS 1) #
+#####################################################################
+
+tar -xf ../mpfr-3.1.2.tar.xz
+mv -v mpfr-3.1.2 mpfr
+tar -xf ../gmp-6.0.0a.tar.xz
+mv -v gmp-6.0.0 gmp
+tar -xf ../mpc-1.0.2.tar.gz
+mv -v mpc-1.0.2 mpc
+
+for file in \
+ $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
+do
+  cp -uv $file{,.orig}
+  sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' \
+      -e 's@/usr@/tools@g' $file.orig > $file
+  echo '
+#undef STANDARD_STARTFILE_PREFIX_1
+#undef STANDARD_STARTFILE_PREFIX_2
+#define STANDARD_STARTFILE_PREFIX_1 "/tools/lib/"
+#define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
+  touch $file.orig
+done
+
+sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
+
+sed -i 's/if \((code.*))\)/if (\1 \&\& \!DEBUG_INSN_P (insn))/' gcc/sched-deps.c
+
+mkdir -v ../gcc-build
+cd ../gcc-build
+
+../gcc-4.9.1/configure                               \
+    --target=$LFS_TGT                                \
+    --prefix=/tools                                  \
+    --with-sysroot=$LFS                              \
+    --with-newlib                                    \
+    --without-headers                                \
+    --with-local-prefix=/tools                       \
+    --with-native-system-header-dir=/tools/include   \
+    --disable-nls                                    \
+    --disable-shared                                 \
+    --disable-multilib                               \
+    --disable-decimal-float                          \
+    --disable-threads                                \
+    --disable-libatomic                              \
+    --disable-libgomp                                \
+    --disable-libitm                                 \
+    --disable-libquadmath                            \
+    --disable-libsanitizer                           \
+    --disable-libssp                                 \
+    --disable-libvtv                                 \
+    --disable-libcilkrts                             \
+    --disable-libstdc++-v3                           \
+    --enable-languages=c,c++
+
+make
+
+make install
+
+#########################################################################
+}; preparation_pass2() { # CONSTRUCTING A THE TEMPORARY SYSTEM (PASS 2) #
+#########################################################################
+
+cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
+  `dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h
+
+for file in \
+ $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
+do
+  cp -uv $file{,.orig}
+  sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' \
+      -e 's@/usr@/tools@g' $file.orig > $file
+  echo '
+#undef STANDARD_STARTFILE_PREFIX_1
+#undef STANDARD_STARTFILE_PREFIX_2
+#define STANDARD_STARTFILE_PREFIX_1 "/tools/lib/"
+#define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
+  touch $file.orig
+done
+
+tar -xf ../mpfr-3.1.2.tar.xz
+mv -v mpfr-3.1.2 mpfr
+tar -xf ../gmp-6.0.0a.tar.xz
+mv -v gmp-6.0.0 gmp
+tar -xf ../mpc-1.0.2.tar.gz
+mv -v mpc-1.0.2 mpc
+
+sed -i 's/if \((code.*))\)/if (\1 \&\& \!DEBUG_INSN_P (insn))/' gcc/sched-deps.c
+
+mkdir -v ../gcc-build
+cd ../gcc-build
+
+CC=$LFS_TGT-gcc                                      \
+CXX=$LFS_TGT-g++                                     \
+AR=$LFS_TGT-ar                                       \
+RANLIB=$LFS_TGT-ranlib                               \
+../gcc-4.9.1/configure                               \
+    --prefix=/tools                                  \
+    --with-local-prefix=/tools                       \
+    --with-native-system-header-dir=/tools/include   \
+    --enable-languages=c,c++                         \
+    --disable-libstdcxx-pch                          \
+    --disable-multilib                               \
+    --disable-bootstrap                              \
+    --disable-libgomp
+
+make
+
+make install
+
+ln -sv gcc /tools/bin/cc
+
+#########################################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM (SCRIPT DELEGATOR) #
+#########################################################################
+
+if [ "${GCC_PASS1}" != "completed" ]; then
+    preparation_pass1
+    GCC_PASS1="completed"
+else
+    preparation_pass2
+fi
+
+#################
+} # END OF FILE #
+#################
+

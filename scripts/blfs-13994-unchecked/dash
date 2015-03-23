@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://gondor.apana.org.au/~herbert/dash/files/dash-0.5.7.tar.gz"
+MD5SUMLIST="f6cedb10ae7258adb5ab17a10ae80d51"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --bindir=/bin --mandir=/usr/share/man
+make
+
+make DESTDIR=${FAKEROOT} install
+
+ln -svf dash /bin/sh
+
+cat >> ${FAKEROOT}/etc/shells << "EOF"
+/bin/dash
+EOF
+
+#################
+} # END OF FILE #
+#################
+

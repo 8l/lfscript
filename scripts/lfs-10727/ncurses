@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu//ncurses/ncurses-5.9.tar.gz"
+MD5SUMLIST="8cb9c412e5f2d96bc6f459aa8c6282a1"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr           \
+            --mandir=/usr/share/man \
+            --with-shared           \
+            --without-debug         \
+            --enable-pc-files       \
+            --enable-widec
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+mv -v ${FAKEROOT}/usr/lib/libncursesw.so.5* ${FAKEROOT}/lib
+
+ln -sfv ../../lib/$(readlink ${FAKEROOT}/usr/lib/libncursesw.so) ${FAKEROOT}/usr/lib/libncursesw.so
+
+for lib in ncurses form panel menu ; do
+    rm -vf                    ${FAKEROOT}/usr/lib/lib${lib}.so
+    echo "INPUT(-l${lib}w)" > ${FAKEROOT}/usr/lib/lib${lib}.so
+    ln -sfv lib${lib}w.a      ${FAKEROOT}/usr/lib/lib${lib}.a
+    ln -sfv ${lib}w.pc        ${FAKEROOT}/usr/lib/pkgconfig/${lib}.pc
+done
+
+ln -sfv libncurses++w.a ${FAKEROOT}/usr/lib/libncurses++.a
+
+rm -vf                     ${FAKEROOT}/usr/lib/libcursesw.so
+echo "INPUT(-lncursesw)" > ${FAKEROOT}/usr/lib/libcursesw.so
+ln -sfv libncurses.so      ${FAKEROOT}/usr/lib/libcurses.so
+ln -sfv libncursesw.a      ${FAKEROOT}/usr/lib/libcursesw.a
+ln -sfv libncurses.a       ${FAKEROOT}/usr/lib/libcurses.a
+
+mkdir -v       ${FAKEROOT}/usr/share/doc/ncurses-5.9
+cp -v -R doc/* ${FAKEROOT}/usr/share/doc/ncurses-5.9
+
+######################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+######################################################
+
+./configure --prefix=/tools \
+            --with-shared   \
+            --without-debug \
+            --without-ada   \
+            --enable-widec  \
+            --enable-overwrite
+
+make
+
+make install
+
+#################
+} # END OF FILE #
+#################
+

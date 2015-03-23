@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/pub/gnu/dejagnu/dejagnu-1.5.1.tar.gz"
+MD5SUMLIST="8386e04e362345f50ad169f052f4c4ab"
+REQUIRES="expect"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+makeinfo --html --no-split -o doc/dejagnu.html doc/dejagnu.texi
+makeinfo --plaintext       -o doc/dejagnu.txt  doc/dejagnu.texi
+
+make DESTDIR=${FAKEROOT} install
+install -v -dm755   ${FAKEROOT}/usr/share/doc/dejagnu-1.5.1
+install -v -m644    doc/dejagnu.{html,txt} \
+                    ${FAKEROOT}/usr/share/doc/dejagnu-1.5.1
+
+#################
+} # END OF FILE #
+#################
+

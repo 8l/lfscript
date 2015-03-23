@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnome.org/pub/gnome/sources/GConf/3.2/GConf-3.2.6.tar.xz"
+MD5SUMLIST="2b16996d0e4b112856ee5c59130e822c"
+REQUIRES="dbus-glib gtk+2 libxml2"
+POSTINST="true"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --disable-orbit \
+            --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+ln -s gconf.xml.defaults ${FAKEROOT}/etc/gconf/gconf.xml.system
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+# (*) Install GConf schemas
+export GCONF_CONFIG_SOURCE="$(gconftool-2 --get-default-source)"
+for schemas in $(ls -1 /etc/gnome/2.30.2/gconf/schemas/*.schemas); do
+    gconftool-2 --makefile-install-rule ${schemas} > /dev/null
+done
+
+#################
+} # END OF FILE #
+#################
+

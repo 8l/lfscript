@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-0.9.35.tar.bz2"
+MD5SUMLIST="531ee8650626ecddcd90b2a4637e31d4"
+REQUIRES="glib2"
+RECOMMENDS="freetype2"
+
+# (*) Install 'freetype2' because it is required to build Pango
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i '/arabic-fallback-shaping.tests/d' test/shaping/Makefile.am
+autoreconf -f -i
+
+./configure --prefix=/usr --with-gobject
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

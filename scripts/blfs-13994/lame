@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/lame/lame-3.99.5.tar.gz"
+MD5SUMLIST="84835b313d4a8b68f5349816d33e07ce"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i -e '/xmmintrin\.h/d' configure
+
+./configure --prefix=/usr --enable-mp3rtp --disable-static
+make
+
+make DESTDIR=${FAKEROOT} pkghtmldir=/usr/share/doc/lame-3.99.5 install
+
+#################
+} # END OF FILE #
+#################
+

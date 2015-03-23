@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/heirloom/heirloom-070715.tar.bz2"
+MD5SUMLIST="d846be4b268b1d55b6ffcef847f09979"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i build/mk.config                   \
+    -e '/LIBZ/s@ -Wl[^ ]*@@g'            \
+    -e '/LIBBZ2/{s@^#@@;s@ -Wl[^ ]*@@g}' \
+    -e '/BZLIB/s@0@1@'
+make makefiles
+make -C libcommon
+make -C libuxre
+make -C cpio
+
+install -v -m755 cpio/pax_su3 ${FAKEROOT}/usr/bin/pax
+install -v -m644 cpio/pax.1 ${FAKEROOT}/usr/share/man/man1
+
+#################
+} # END OF FILE #
+#################
+

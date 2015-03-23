@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu/binutils/binutils-2.24.tar.bz2
+          http://www.linuxfromscratch.org/patches/lfs/development/binutils-2.24-load_gcc_lto_plugin_by_default-1.patch
+          http://www.linuxfromscratch.org/patches/lfs/development/binutils-2.24-lto_testsuite-1.patch"
+MD5SUMLIST="e0f71a7b2ddab0f8612336ac81d9636b
+            48e4e96a60bfed41804aaecf4944f5d9
+            a6647fdb3cca512962bb1433bb6b4f9f"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+rm -fv etc/standards.info
+sed -i.bak '/^INFO/s/standards.info //' etc/Makefile.in
+
+patch -Np1 -i ../binutils-2.24-load_gcc_lto_plugin_by_default-1.patch
+
+patch -Np1 -i ../binutils-2.24-lto_testsuite-1.patch
+
+mkdir -v ../binutils-build
+cd ../binutils-build
+
+../binutils-2.24/configure --prefix=/usr   \
+                           --enable-shared \
+                           --disable-werror
+
+make tooldir=/usr
+
+make DESTDIR=${FAKEROOT} tooldir=/usr install
+
+#####################################################################
+}; preparation_pass1() { # CONSTRUCTING A TEMPORARY SYSTEM (PASS 1) #
+#####################################################################
+
+mkdir -v ../binutils-build
+cd ../binutils-build
+
+../binutils-2.24/configure     \
+    --prefix=/tools            \
+    --with-sysroot=$LFS        \
+    --with-lib-path=/tools/lib \
+    --target=$LFS_TGT          \
+    --disable-nls              \
+    --disable-werror
+
+make
+
+case $(uname -m) in
+  x86_64) mkdir -v /tools/lib && ln -sv lib /tools/lib64 ;;
+esac
+
+make install
+
+#########################################################################
+}; preparation_pass2() { # CONSTRUCTING A THE TEMPORARY SYSTEM (PASS 2) #
+#########################################################################
+
+mkdir -v ../binutils-build
+cd ../binutils-build
+
+CC=$LFS_TGT-gcc                \
+AR=$LFS_TGT-ar                 \
+RANLIB=$LFS_TGT-ranlib         \
+../binutils-2.24/configure     \
+    --prefix=/tools            \
+    --disable-nls              \
+    --disable-werror           \
+    --with-lib-path=/tools/lib \
+    --with-sysroot
+
+make
+
+make install
+
+make -C ld clean
+make -C ld LIB_PATH=/usr/lib:/lib
+cp -v ld/ld-new /tools/bin
+
+#########################################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM (SCRIPT DELEGATOR) #
+#########################################################################
+
+if [ "${BINUTILS_PASS1}" != "completed" ]; then
+    preparation_pass1
+    BINUTILS_PASS1="completed"
+else
+    preparation_pass2
+fi
+
+#################
+} # END OF FILE #
+#################
+

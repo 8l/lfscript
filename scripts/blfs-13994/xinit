@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://xorg.freedesktop.org/releases/individual/app/xinit-1.3.3.tar.bz2"
+MD5SUMLIST="3b8da0e6237aee9828cc809c647510a7"
+REQUIRES="twm xclock xorg-env xterm"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure $XORG_CONFIG \
+            --with-xinitdir=/etc/X11/app-defaults
+make
+
+make DESTDIR=${FAKEROOT} install
+
+# (*) Use a custom xinitrc system
+mkdir -pv ${FAKEROOT}/etc/alternatives/xinitrc
+
+mv -v ${FAKEROOT}/etc/X11/app-defaults/xinitrc \
+    ${FAKEROOT}/etc/alternatives/xinitrc/xinit.xinitrc
+
+cat > ${FAKEROOT}/etc/X11/app-defaults/xinitrc << "EOF"
+#!/bin/sh
+
+. /etc/alternatives/xinitrc/functions
+
+startSession "${1:-${DEFAULT_SESSION}}"
+EOF
+
+cat > ${FAKEROOT}/etc/alternatives/xinitrc/functions << "EOF"
+#!/bin/sh
+# Functions that list or load xinitrc files.
+# Written by Marcel van den Boer
+
+# This variable can be overridden by setting it in /etc/xinitrc.conf
+DEFAULT_SESSION="xinit"
+
+if [ -r /etc/xinitrc.conf ]; then
+    . /etc/xinitrc.conf
+fi
+
+# Lists all alternative *.xinitrc files with underscores replaced by spaces,
+# and the suffix '.xinitrc' removed. Entries are sepperated by comma's.
+# The default session is also listed first.
+# Designed for use by the bootscript for the Slim Display Manager.
+listSessions() {
+    pushd /etc/alternatives/xinitrc &> /dev/null || {
+        echo ""
+        return
+    }
+
+    for f in $(ls -1 *.xinitrc); do
+        local SESSIONS="${SESSIONS},\"$(echo ${f//_/ } | cut -d'.' -f1)\""
+    done
+
+    popd > /dev/null
+
+    local FIRST_SESSION="\"$(echo ${DEFAULT_SESSION//_/ } | cut -d'.' -f1)\""
+
+    echo "${FIRST_SESSION}${SESSIONS}"
+}
+
+# Loads the specified xinitrc file (as listed by 'listSessions()') or starts
+# TWM with a single XTerm if the session does not exist.
+startSession() {
+    local XINITRC="/etc/alternatives/xinitrc/${1// /_}.xinitrc"
+    if [ "${1}" != "" ] && [ -r "${XINITRC}" ]; then
+        . "${XINITRC}"
+    else
+        twm &
+        exec xterm -geometry 80x30+0+0 -title \
+                "Unable to load specified session. Type 'exit' to return."
+    fi
+}
+EOF
+
+#################
+} # END OF FILE #
+#################
+

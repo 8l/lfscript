@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/mate-backgrounds-1.8.0.tar.xz"
+MD5SUMLIST="1b6adb6f732941afbf8f0f722b361fe4"
+REQUIRES="glib2 mate-common"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./autogen.sh --prefix=/usr \
+        --localstatedir=/var \
+        --sysconfdir=/etc/mate/1.8
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

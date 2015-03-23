@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://hostap.epitest.fi/releases/wpa_supplicant-2.2.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="238e8e888bbd558e1a57e3eb28d1dd07
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+REQUIRES="dbus libnl openssl"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cat > wpa_supplicant/.config << "EOF"
+CONFIG_BACKEND=file
+CONFIG_CTRL_IFACE=y
+CONFIG_DEBUG_FILE=y
+CONFIG_DEBUG_SYSLOG=y
+CONFIG_DEBUG_SYSLOG_FACILITY=LOG_DAEMON
+CONFIG_DRIVER_NL80211=y
+CONFIG_DRIVER_WEXT=y
+CONFIG_DRIVER_WIRED=y
+CONFIG_EAP_GTC=y
+CONFIG_EAP_LEAP=y
+CONFIG_EAP_MD5=y
+CONFIG_EAP_MSCHAPV2=y
+CONFIG_EAP_OTP=y
+CONFIG_EAP_PEAP=y
+CONFIG_EAP_TLS=y
+CONFIG_EAP_TTLS=y
+CONFIG_IEEE8021X_EAPOL=y
+CONFIG_IPV6=y
+CONFIG_LIBNL32=y
+CONFIG_PEERKEY=y
+CONFIG_PKCS12=y
+CONFIG_READLINE=y
+CONFIG_SMARTCARD=y
+CONFIG_WPS=y
+CFLAGS += -I/usr/include/libnl3
+EOF
+
+cat >> wpa_supplicant/.config << "EOF"
+CONFIG_CTRL_IFACE_DBUS=y
+CONFIG_CTRL_IFACE_DBUS_NEW=y
+CONFIG_CTRL_IFACE_DBUS_INTRO=y
+EOF
+
+cd wpa_supplicant
+make BINDIR=/sbin LIBDIR=/lib
+
+# (*) Not required because QT4 is not installed
+#pushd wpa_gui-qt4
+#qmake wpa_gui.pro
+#make
+#popd
+
+install -v -m755 wpa_{cli,passphrase,supplicant} ${FAKEROOT}/sbin/
+install -v -m644 doc/docbook/wpa_supplicant.conf.5 ${FAKEROOT}/usr/share/man/man5/
+install -v -m644 doc/docbook/wpa_{cli,passphrase,supplicant}.8 ${FAKEROOT}/usr/share/man/man8/
+
+install -v -m644 dbus/fi.{epitest.hostap.WPASupplicant,w1.wpa_supplicant1}.service \
+                 ${FAKEROOT}/usr/share/dbus-1/system-services/
+install -v -m644 dbus/dbus-wpa_supplicant.conf \
+                 ${FAKEROOT}/etc/dbus-1/system.d/wpa_supplicant.conf
+
+# (*) Not required because QT4 is not installed
+#install -v -m755 wpa_gui-qt4/wpa_gui ${FAKEROOT}/usr/bin/
+#install -v -m644 doc/docbook/wpa_gui.8 ${FAKEROOT}/usr/share/man/man8/
+#install -v -m644 wpa_gui-qt4/wpa_gui.desktop ${FAKEROOT}/usr/share/applications/
+#install -v -m644 wpa_gui-qt4/icons/wpa_gui.svg ${FAKEROOT}/usr/share/pixmaps/
+
+# (*) Will be executed by desktop-file-utils, if it is installed
+#update-desktop-database
+
+# (*) Example configuration
+#wpa_passphrase SSID SECRET_PASSWORD > /etc/sysconfig/wpa_supplicant-wifi0.conf
+
+includeBootscript service-wpa
+
+# (*) Example configuration
+#cat > /etc/sysconfig/ifconfig.wifi0 << "EOF"
+#ONBOOT="yes"
+#IFACE="wlan0"
+#SERVICE="wpa"
+#
+## Additional arguments to wpa_supplicant
+#WPA_ARGS=""
+#
+#WPA_SERVICE="dhclient"
+#DHCP_START=""
+#DHCP_STOP=""
+#
+## Set PRINTIP="yes" to have the script print
+## the DHCP assigned IP address
+#PRINTIP="no"
+#
+## Set PRINTALL="yes" to print the DHCP assigned values for
+## IP, SM, DG, and 1st NS. This requires PRINTIP="yes".
+#PRINTALL="no"
+#EOF
+
+# (*) Example configuration
+#cat > /etc/sysconfig/ifconfig.wifi0 << "EOF"
+#ONBOOT="yes"
+#IFACE="wlan0"
+#SERVICE="wpa"
+#
+## Additional arguments to wpa_supplicant
+#WPA_ARGS=""
+#
+#WPA_SERVICE="dhcpcd"
+#DHCP_START="-b -q <insert appropriate start options here>"
+#DHCP_STOP="-k <insert additional stop options here>"
+#EOF
+
+# (*) Example configuration
+#cat > /etc/sysconfig/ifconfig.wifi0 << "EOF"
+#ONBOOT="yes"
+#IFACE="wlan0"
+#SERVICE="wpa"
+#
+## Additional arguments to wpa_supplicant
+#WPA_ARGS=""
+#
+#WPA_SERVICE="ipv4-static"
+#IP="192.168.1.1"
+#GATEWAY="192.168.1.2"
+#PREFIX="24"
+#BROADCAST="192.168.1.255"
+#EOF
+
+# (*) Example configuration
+#ifup wifi0
+
+#################
+} # END OF FILE #
+#################
+

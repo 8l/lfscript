@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="https://www.kernel.org/pub/linux/utils/kernel/kmod/kmod-18.tar.xz"
+MD5SUMLIST="82835c7f01983634e06ca72b4ee30cc6"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr          \
+            --bindir=/bin          \
+            --sysconfdir=/etc      \
+            --with-rootlibdir=/lib \
+            --with-xz              \
+            --with-zlib
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+for target in depmod insmod modinfo modprobe rmmod; do
+  ln -sv ../bin/kmod ${FAKEROOT}/sbin/$target
+done
+
+ln -sv kmod ${FAKEROOT}/bin/lsmod
+
+#################
+} # END OF FILE #
+#################
+

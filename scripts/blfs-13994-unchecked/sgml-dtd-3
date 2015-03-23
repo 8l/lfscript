@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.docbook.org/sgml/3.1/docbk31.zip"
+MD5SUMLIST="432749c0c806dbae81c8bcb70da3b5d3"
+REQUIRES="sgml-common unzip"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i -e '/ISO 8879/d' \
+       -e 's|DTDDECL "-//OASIS//DTD DocBook V3.1//EN"|SGMLDECL|g' \
+       docbook.cat
+
+install -v -d -m755 ${FAKEROOT}/usr/share/sgml/docbook/sgml-dtd-3.1
+chown -R root:root .
+install -v docbook.cat ${FAKEROOT}/usr/share/sgml/docbook/sgml-dtd-3.1/catalog
+cp -v -af *.dtd *.mod *.dcl ${FAKEROOT}/usr/share/sgml/docbook/sgml-dtd-3.1
+
+install-catalog --add ${FAKEROOT}/etc/sgml/sgml-docbook-dtd-3.1.cat \
+    ${FAKEROOT}/usr/share/sgml/docbook/sgml-dtd-3.1/catalog
+
+install-catalog --add ${FAKEROOT}/etc/sgml/sgml-docbook-dtd-3.1.cat \
+    ${FAKEROOT}/etc/sgml/sgml-docbook.cat
+
+cat >> ${FAKEROOT}/usr/share/sgml/docbook/sgml-dtd-3.1/catalog << "EOF"
+  -- Begin Single Major Version catalog changes --
+
+PUBLIC "-//Davenport//DTD DocBook V3.0//EN" "docbook.dtd"
+
+  -- End Single Major Version catalog changes --
+EOF
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/acpid2/acpid-2.0.22.tar.xz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="c8ba756030d1b21fc973ec3d640f27f1
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --docdir=/usr/share/doc/acpid-2.0.22
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 -d ${FAKEROOT}/etc/acpi/events
+cp -r samples ${FAKEROOT}/usr/share/doc/acpid-2.0.22
+
+cat > ${FAKEROOT}/etc/acpi/events/lid << "EOF"
+event=button/lid
+action=/etc/acpi/lid.sh
+EOF
+
+cat > ${FAKEROOT}/etc/acpi/lid.sh << "EOF"
+#!/bin/sh
+/bin/grep -q open /proc/acpi/button/lid/LID/state && exit 0
+/usr/sbin/pm-suspend
+EOF
+chmod +x ${FAKEROOT}/etc/acpi/lid.sh
+
+includeBootscript acpid
+
+#################
+} # END OF FILE #
+#################
+

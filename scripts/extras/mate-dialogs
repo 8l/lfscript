@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://pub.mate-desktop.org/releases/1.8/mate-dialogs-1.8.0.tar.xz"
+MD5SUMLIST="c52cba1b3cb8c600e710e129a5118e84"
+REQUIRES="gtk+2 mate-common yelp-tools"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./autogen.sh --prefix=/usr \
+        --localstatedir=/var \
+        --mandir=/usr/share/man \
+        --sysconfdir=/etc/mate/1.8
+make
+
+make DESTDIR=${FAKEROOT} install
+
+ln -s matedialog ${FAKEROOT}/usr/bin/zenity
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,41 @@
+diff -Naur old//BOOK/xsoft/graphweb/firefox.xml new//BOOK/xsoft/graphweb/firefox.xml
+--- old//BOOK/xsoft/graphweb/firefox.xml	2012-02-01 17:18:20.000000000 +0100
++++ new//BOOK/xsoft/graphweb/firefox.xml	2012-02-09 22:28:22.424645066 +0100
+@@ -276,7 +276,7 @@
+ StartupNotify=true
+ Terminal=false
+ EOF
+-ln -sv -f /usr/lib/firefox-&firefox-version;/icons/mozicon128.png /usr/share/pixmaps/firefox.png</userinput></screen>
++ln -sv -f ../../lib/firefox-&firefox-version;/icons/mozicon128.png /usr/share/pixmaps/firefox.png</userinput></screen>
+   </sect2>
+ 
+   <sect2 role="content">
+diff -Naur old//BOOK/xsoft/graphweb/firefox.xml new//BOOK/xsoft/graphweb/firefox.xml
+--- old//BOOK/xsoft/graphweb/firefox.xml	2012-01-28 16:46:15.000000000 +0100
++++ new//BOOK/xsoft/graphweb/firefox.xml	2012-01-31 19:20:55.951072829 +0100
+@@ -147,7 +147,7 @@
+ # ac_add_options --with-system-libevent
+ 
+ mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/firefox-build-dir
+-ac_add_options --enable-official-branding
++# ac_add_options --enable-official-branding
+ ac_add_options --prefix=/usr
+ 
+ # The rest of these options have no effect if you&apos;re
+@@ -197,7 +197,7 @@
+     <para>If you <emphasis>have</emphasis> linked against an already installed
+     <application>Xulrunner</application>, as the
+     <systemitem class="username">root</systemitem> user:</para>
+-
++<!--
+ <screen role="root"><userinput>make -C firefox-build-dir install &amp;&amp;
+ rm /usr/bin/firefox &amp;&amp;
+ cat &gt; /usr/bin/firefox &lt;&lt; "EOF" &amp;&amp;
+@@ -208,6 +208,7 @@
+ mkdir -p /usr/lib/mozilla/plugins &amp;&amp;
+ ln -sv ../mozilla/plugins /usr/lib/firefox-&firefox-version; &amp;&amp;
+ chown -R -v root:root /usr/lib/firefox-&firefox-version;</userinput></screen>
++-->
+   </sect2>
+ 
+   <sect2 role="commands">

@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu/coreutils/coreutils-8.23.tar.xz
+          http://www.linuxfromscratch.org/patches/lfs/development/coreutils-8.23-i18n-1.patch"
+MD5SUMLIST="abed135279f87ad6762ce57ff6d89c41
+            587051bc411e0da9b3bf8984b49b364e"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../coreutils-8.23-i18n-1.patch
+touch Makefile.in
+
+FORCE_UNSAFE_CONFIGURE=1 ./configure \
+            --prefix=/usr            \
+            --enable-no-install-program=kill,uptime
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+mv -v ${FAKEROOT}/usr/bin/{cat,chgrp,chmod,chown,cp,date,dd,df,echo} ${FAKEROOT}/bin
+mv -v ${FAKEROOT}/usr/bin/{false,ln,ls,mkdir,mknod,mv,pwd,rm} ${FAKEROOT}/bin
+mv -v ${FAKEROOT}/usr/bin/{rmdir,stty,sync,true,uname} ${FAKEROOT}/bin
+mv -v ${FAKEROOT}/usr/bin/chroot ${FAKEROOT}/usr/sbin
+mv -v ${FAKEROOT}/usr/share/man/man1/chroot.1 ${FAKEROOT}/usr/share/man/man8/chroot.8
+sed -i s/\"1\"/\"8\"/1 ${FAKEROOT}/usr/share/man/man8/chroot.8
+
+mv -v ${FAKEROOT}/usr/bin/{head,sleep,nice,test,[} ${FAKEROOT}/bin
+
+######################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+######################################################
+
+./configure --prefix=/tools --enable-install-program=hostname
+
+make
+
+make install
+
+#################
+} # END OF FILE #
+#################
+

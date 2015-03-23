@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://prdownloads.sourceforge.net/expect/expect5.45.tar.gz"
+MD5SUMLIST="44e1a4f4c877e9ddc5a542dfa7ecc92b"
+
+###################################################
+preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+###################################################
+
+cp -v configure{,.orig}
+sed 's:/usr/local/bin:/bin:' configure.orig > configure
+
+./configure --prefix=/tools       \
+            --with-tcl=/tools/lib \
+            --with-tclinclude=/tools/include
+
+make
+
+make SCRIPTS="" install
+
+#################
+} # END OF FILE #
+#################
+

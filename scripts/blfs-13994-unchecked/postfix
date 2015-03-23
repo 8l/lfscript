@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-2.11.1.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="56ac1f1a79737c4ac1e24535a122a4a6
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+REQUIRES="db"
+TAGS="preinst"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i "s/DB_VERSION_MAJOR == 5/DB_VERSION_MAJOR >= 5/" src/util/dict_db.c
+
+sed -i 's/.\x08//g' README_FILES/*
+
+make CCARGS="-DUSE_TLS -I/usr/include/openssl/                     \
+             -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl" \
+     AUXLIBS="-lssl -lcrypto -lsasl2"                              \
+     makefiles
+make
+
+sh postfix-install -non-interactive \
+   daemon_directory=/usr/lib/postfix \
+   manpage_directory=/usr/share/man \
+   html_directory=/usr/share/doc/postfix-2.11.1/html \
+   readme_directory=/usr/share/doc/postfix-2.11.1/readme
+
+cat >> ${FAKEROOT}/etc/aliases << "EOF"
+# Begin /etc/aliases
+
+MAILER-DAEMON:    postmaster
+postmaster:       root
+
+root:             <LOGIN>
+# End /etc/aliases
+EOF
+
+includeBootscript postfix
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 32 postfix
+groupadd -g 33 postdrop
+useradd -c "Postfix Daemon User" -d /var/spool/postfix -g postfix \
+        -s /bin/false -u 32 postfix
+chown -v postfix:postfix /var/mail
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+/usr/sbin/postfix upgrade-configuration
+
+/usr/sbin/postfix check
+/usr/sbin/postfix start
+
+#################
+} # END OF FILE #
+#################
+

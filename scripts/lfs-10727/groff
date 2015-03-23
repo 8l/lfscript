@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu/groff/groff-1.22.2.tar.gz"
+MD5SUMLIST="9f4cd592a5efc7e36481d8d8d8af6d16"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+PAGE=A4 ./configure --prefix=/usr
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+# (*) This will change the default paper size for groff when installing your
+#     system, if you have set up the PAGE variable in 'install.conf'.
+if [ "${LFSCRIPT_INSTALL}" == "true" ]; then
+    [ "${PAGE}" != "" ] && echo "${PAGE}" > /etc/papersize
+fi
+
+#################
+} # END OF FILE #
+#################
+

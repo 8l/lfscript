@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/tcl/tk8.6.1-src.tar.gz"
+MD5SUMLIST="63f21c3a0e0cefbd854b4eb29b129ac6"
+REQUIRES="tcl x7lib"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cd unix
+./configure --prefix=/usr \
+            --mandir=/usr/share/man \
+            $([ $(uname -m) = x86_64 ] && echo --enable-64bit)
+
+make
+
+sed -e "s@^\(TK_SRC_DIR='\).*@\1/usr/include'@" \
+    -e "/TK_B/s@='\(-L\)\?.*unix@='\1/usr/lib@" \
+    -i tkConfig.sh
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} install-private-headers
+ln -v -sf wish8.6 ${FAKEROOT}/usr/bin/wish
+chmod -v 755 ${FAKEROOT}/usr/lib/libtk8.6.so
+
+#################
+} # END OF FILE #
+#################
+

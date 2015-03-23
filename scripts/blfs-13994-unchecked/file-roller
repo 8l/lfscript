@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnome.org/pub/gnome/sources/file-roller/3.12/file-roller-3.12.2.tar.xz"
+MD5SUMLIST="408e3bfc9616f6688ac7854c512b7dfa"
+REQUIRES="gtk+3 yelp-xsl"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr         \
+            --disable-packagekit  \
+            --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+chmod -v 0755 ${FAKEROOT}/usr/libexec/file-roller/isoinfo.sh
+
+#################
+} # END OF FILE #
+#################
+

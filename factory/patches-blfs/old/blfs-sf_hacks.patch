@@ -1,0 +1,132 @@
+diff -Naur old//BOOK/general/genlib/libgcrypt.xml new//BOOK/general/genlib/libgcrypt.xml
+--- old//BOOK/general/genlib/libgcrypt.xml	2011-12-05 23:58:00.000000000 +0100
++++ new//BOOK/general/genlib/libgcrypt.xml	2012-01-31 19:19:11.850563776 +0100
+@@ -88,11 +88,11 @@
+     (you must have <!--<xref linkend="tetex"/> or--> <xref linkend="texlive"/>
+     installed to build the PDF and PostScript), then issue the following
+     commands:</para>
+-
++<!--
+ <screen><userinput>make -C doc pdf ps html &amp;&amp;
+ makeinfo --html --no-split -o doc/gcrypt_nochunks.html doc/gcrypt.texi &amp;&amp;
+ makeinfo --plaintext       -o doc/gcrypt.txt           doc/gcrypt.texi</userinput></screen>
+-
++-->
+     <para>To test the results, issue: <command>make check</command>.</para>
+ 
+     <para>Now, as the <systemitem class="username">root</systemitem>
+@@ -106,7 +106,7 @@
+     <para>If you built the additional documentation, install it by issuing the
+     following commands as the <systemitem class="username">root</systemitem>
+     user:</para>
+-
++<!--
+ <screen role="root"><userinput>install -v -m755 -d /usr/share/doc/libgcrypt-&libgcrypt-version;/html &amp;&amp;
+ install -v -m644 doc/gcrypt.html/* \
+                     /usr/share/doc/libgcrypt-&libgcrypt-version;/html &amp;&amp;
+@@ -114,7 +114,7 @@
+                     /usr/share/doc/libgcrypt-&libgcrypt-version; &amp;&amp;
+ install -v -m644 doc/gcrypt.{pdf,ps,dvi,txt,texi} \
+                     /usr/share/doc/libgcrypt-&libgcrypt-version;</userinput></screen>
+-
++-->
+   </sect2>
+ 
+   <sect2 role="content">
+diff -Naur old//BOOK/multimedia/libdriv/libcanberra.xml new//BOOK/multimedia/libdriv/libcanberra.xml
+--- old//BOOK/multimedia/libdriv/libcanberra.xml	2012-01-25 01:52:39.000000000 +0100
++++ new//BOOK/multimedia/libdriv/libcanberra.xml	2012-01-31 19:19:11.878563908 +0100
+@@ -85,8 +85,11 @@
+     <para>Install <application>libcanberra</application> by running the following
+     commands:</para>
+ 
++<screen><userinput># (*) Convert source code to Mate
++convertToMate</userinput></screen>
++
+ <screen><userinput>./configure --prefix=/usr --sysconfdir=/etc \
+-    --with-gconf-schema-file-dir=$GNOME_SYSCONFDIR/gconf/schemas &amp;&amp;
++        --with-mateconf-schema-file-dir=/etc/mate/1.1/mateconf/schemas
+ make</userinput></screen>
+ 
+     <para>This package does not come with a test suite.</para>
+diff -Naur old//BOOK/networking/connect/ppp.xml new//BOOK/networking/connect/ppp.xml
+--- old//BOOK/networking/connect/ppp.xml	2011-11-17 18:27:16.000000000 +0100
++++ new//BOOK/networking/connect/ppp.xml	2012-01-31 19:19:11.886563957 +0100
+@@ -155,7 +155,7 @@
+       </indexterm>
+ 
+     </sect3>
+-
++<!--
+     <sect3>
+       <title>Configuration Information</title>
+ 
+@@ -296,14 +296,14 @@
+ 
+     <sect4>
+       <title>Dialup Modem Connection</title>
+-
++-->
+ <!-- This section has been tested with various ISPs in Yekaterinburg,
+      Russia using Lucent WinModem. I cannot test it anymore, because
+      there is no free PCI slot for the modem in my new computer. However,
+      it is similar enough to GPRS for me to be sure that it still works,
+      and nobody complained about non-working dialup on the LFS LiveCD.
+      - Alexander E. Patrakov -->
+-
++<!--
+       <para>Dialup connections are established with the help of a modem
+       connected to a computer and the telephone line. The modem dials a
+       telephone number of the ISP's modem, and they exchange data using
+@@ -368,7 +368,7 @@
+ 
+     <sect4>
+       <title>GPRS and EDGE Connections</title>
+-
++-->
+ <!-- This section has been tested with GPRS service from MOTIV in
+      Yekaterinburg, Russia. According to forum messages, the procedure
+      also works with EDGE, but my cellular phone (Motorola C350) does not
+@@ -396,7 +396,7 @@
+       In most cases, billing is based on the telephone number, and the
+       username/password pair is not needed, as assumed in the example
+       below.</para>
+-
++<!--
+       <para>In order to configure a GPRS connection, two files have to
+       be created: a chat script that automates the connection procedure
+       (common for all GPRS accounts), and a peer file that provides
+@@ -454,7 +454,7 @@
+ 
+       <para>In order to stop the connection, run:</para>
+ <screen><userinput>killall pppd</userinput></screen>
+-
++-->
+       <!--  There are an infinite number of ways that computers can be
+       connected together. Trying to write a bootscript that can cope with every
+       possible network configuration is the road to madness. Andrew Benton -->
+diff -Naur old//BOOK/networking/netlibs/libsoup.xml new//BOOK/networking/netlibs/libsoup.xml
+--- old//BOOK/networking/netlibs/libsoup.xml	2010-10-17 19:55:40.000000000 +0200
++++ new//BOOK/networking/netlibs/libsoup.xml	2012-01-31 19:19:11.894563990 +0100
+@@ -88,7 +88,20 @@
+     <para>Install <application>libsoup</application> by running the following
+     commands:</para>
+ 
+-<screen><userinput>./configure --prefix=/usr &amp;&amp;
++<screen><userinput># (*) Convert source code to Mate
++convertToMate
++mv -v docs/reference/tmpl/soup-{gnome,mate}-features.sgml
++mv -v docs/reference/html/libsoup-2.4-soup-{gnome,mate}-features.html
++mv -v libsoup-{gnome,mate}-2.4.pc.in
++mv -v libsoup/soup-proxy-resolver-{gnome,mate}.h
++mv -v libsoup/soup-password-manager-{gnome,mate}.c
++mv -v libsoup/soup-{gnome,mate}.h
++mv -v libsoup/soup-{gnome,mate}-features.h
++mv -v libsoup/soup-proxy-resolver-{gnome,mate}.c
++mv -v libsoup/soup-{gnome,mate}-features.c
++mv -v libsoup/soup-password-manager-{gnome,mate}.h</userinput></screen>
++
++<screen><userinput>./configure --prefix=/usr --disable-ssl &amp;&amp;
+ make</userinput></screen>
+ 
+     <para>To test the results, issue: <command>make check</command>.</para>

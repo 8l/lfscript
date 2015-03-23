@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.sendmail.org/pub/sendmail/sendmail.8.14.9.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="6a3bdceffa592316f830be289a4bd783
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+REQUIRES="openldap"
+TAGS="preinst"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cat >> devtools/Site/site.config.m4 << "EOF"
+APPENDDEF(`confENVDEF',`-DSTARTTLS -DSASL -DLDAPMAP')
+APPENDDEF(`confLIBS', `-lssl -lcrypto -lsasl2 -lldap -llber -ldb')
+APPENDDEF(`confINCDIRS', `-I/usr/include/sasl')
+EOF
+
+cat >> devtools/Site/site.config.m4 << "EOF"
+define(`confMANGRP',`root')
+define(`confMANOWN',`root')
+define(`confSBINGRP',`root')
+define(`confUBINGRP',`root')
+define(`confUBINOWN',`root')
+
+EOF
+
+sed -i 's|/usr/man/man|/usr/share/man/man|' \
+    devtools/OS/Linux
+
+sed -i -r "s/^# if (DB.*)$/# if (\1) || DB_VERSION_MAJOR >= 5/" \
+    include/sm/bdb.h
+
+cd sendmail
+sh Build
+cd ../cf/cf
+cp generic-linux.mc sendmail.mc
+sh Build sendmail.cf
+
+install -v -d -m755 ${FAKEROOT}/etc/mail
+sh Build install-cf
+
+cd ../..
+sh Build install
+
+install -v -m644 cf/cf/{submit,sendmail}.mc ${FAKEROOT}/etc/mail
+cp -v -R cf/* ${FAKEROOT}/etc/mail
+
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/sendmail-8.14.9/{cf,sendmail}
+
+install -v -m644 CACerts FAQ KNOWNBUGS LICENSE PGPKEYS README RELEASE_NOTES \
+        ${FAKEROOT}/usr/share/doc/sendmail-8.14.9
+
+install -v -m644 sendmail/{README,SECURITY,TRACEFLAGS,TUNING} \
+        ${FAKEROOT}/usr/share/doc/sendmail-8.14.9/sendmail
+
+install -v -m644 cf/README ${FAKEROOT}/usr/share/doc/sendmail-8.14.9/cf
+
+for manpage in sendmail editmap mailstats makemap praliases smrsh
+do
+    install -v -m644 $manpage/$manpage.8 ${FAKEROOT}/usr/share/man/man8
+done
+
+install -v -m644 sendmail/aliases.5    ${FAKEROOT}/usr/share/man/man5
+install -v -m644 sendmail/mailq.1      ${FAKEROOT}/usr/share/man/man1
+install -v -m644 sendmail/newaliases.1 ${FAKEROOT}/usr/share/man/man1
+install -v -m644 vacation/vacation.1   ${FAKEROOT}/usr/share/man/man1
+
+cd doc/op
+sed -i 's/groff/GROFF_NO_SGR=1 groff/' Makefile
+make op.txt op.pdf
+
+install -v -d -m755 ${FAKEROOT}/usr/share/doc/sendmail-8.14.9
+install -v -m644 op.ps op.txt op.pdf ${FAKEROOT}/usr/share/doc/sendmail-8.14.9
+cd ../..
+
+includeBootscript sendmail
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 26 smmsp
+useradd -c "Sendmail Daemon" -g smmsp -d /dev/null \
+        -s /bin/false -u 26 smmsp
+chmod -v 1777 /var/mail
+install -v -m700 -d /var/spool/mqueue
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+echo $(hostname) > /etc/mail/local-host-names
+cat > /etc/mail/aliases << "EOF"
+postmaster: root
+MAILER-DAEMON: root
+
+EOF
+newaliases -v
+
+cd /etc/mail
+m4 m4/cf.m4 sendmail.mc > sendmail.cf
+
+#################
+} # END OF FILE #
+#################
+

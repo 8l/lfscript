@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://www.cpan.org/src/5.0/perl-5.20.0.tar.bz2"
+MD5SUMLIST="20cbecd4e9e880ee7a50a136c8b1484e"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
+
+export BUILD_ZLIB=False
+export BUILD_BZIP2=0
+
+sh Configure -des -Dprefix=/usr                 \
+                  -Dvendorprefix=/usr           \
+                  -Dman1dir=/usr/share/man/man1 \
+                  -Dman3dir=/usr/share/man/man3 \
+                  -Dpager="/usr/bin/less -isR"  \
+                  -Duseshrplib
+
+make
+
+make DESTDIR=${FAKEROOT} install
+unset BUILD_ZLIB BUILD_BZIP2
+
+######################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+######################################################
+
+sh Configure -des -Dprefix=/tools -Dlibs=-lm
+
+make
+
+cp -v perl cpan/podlators/pod2man /tools/bin
+mkdir -pv /tools/lib/perl5/5.20.0
+cp -Rv lib/* /tools/lib/perl5/5.20.0
+
+#################
+} # END OF FILE #
+#################
+

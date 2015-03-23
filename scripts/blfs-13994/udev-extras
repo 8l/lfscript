@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://dev.gentoo.org/~blueness/eudev/eudev-1.9.tar.gz"
+MD5SUMLIST="da8083b30b44177445b21e8299af23a1"
+REQUIRES="glib2"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed    -i '/struct ucred/i struct ucred;' src/libudev/util.h
+sed -r -i 's|/usr(/bin/test)|\1|'         test/udev-test.pl
+
+./configure --prefix=/usr           \
+            --bindir=/sbin          \
+            --sbindir=/sbin         \
+            --libdir=/usr/lib       \
+            --sysconfdir=/etc       \
+            --libexecdir=/lib       \
+            --with-rootprefix=      \
+            --with-rootlibdir=/lib  \
+            --enable-split-usr      \
+            --enable-libkmod        \
+            --enable-rule_generator \
+            --enable-keymap         \
+            --disable-introspection \
+            --disable-gtk-doc-html  \
+            --with-firmware-path=/lib/firmware
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://kent.dl.sourceforge.net/sourceforge/squashfs/squashfs4.2.tar.gz"
+MD5SUMLIST="1b7a781fb4cf8938842279bd3e8ee852"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+pushd squashfs-tools
+
+sed "s/#XZ_SUPPORT/XZ_SUPPORT/" -i Makefile
+make
+
+make INSTALL_DIR=${FAKEROOT}/usr/bin install
+
+popd
+
+#################
+} # END OF FILE #
+#################
+

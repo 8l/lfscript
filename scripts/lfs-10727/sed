@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu/sed/sed-4.2.2.tar.bz2"
+MD5SUMLIST="7ffe1c7cdc3233e1e0c4b502df253974"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --bindir=/bin --htmldir=/usr/share/doc/sed-4.2.2
+
+make
+make html
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} -C doc install-html
+
+######################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+######################################################
+
+./configure --prefix=/tools
+
+make
+
+make install
+
+#################
+} # END OF FILE #
+#################
+

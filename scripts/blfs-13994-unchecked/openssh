@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-6.6p1.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="3e9800e6bca1fbac0eea4d41baa7f239
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+REQUIRES="openssl"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+install -v -m700 -d ${FAKEROOT}/var/lib/sshd
+chown   -v root:sys ${FAKEROOT}/var/lib/sshd
+
+groupadd -g 50 sshd
+useradd -c 'sshd PrivSep' -d ${FAKEROOT}/var/lib/sshd -g sshd -s ${FAKEROOT}/bin/false -u 50 sshd
+
+./configure --prefix=/usr                     \
+            --sysconfdir=/etc/ssh             \
+            --with-md5-passwords              \
+            --with-privsep-path=/var/lib/sshd
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 contrib/ssh-copy-id ${FAKEROOT}/usr/bin
+install -v -m644 contrib/ssh-copy-id.1 ${FAKEROOT}/usr/share/man/man1
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/openssh-6.6p1
+install -v -m644 INSTALL LICENCE OVERVIEW README* ${FAKEROOT}/usr/share/doc/openssh-6.6p1
+
+ssh-keygen
+ssh-copy-id -i ${FAKEROOT}/etc/skel/.ssh/id_rsa.pub REMOTE_USERNAME@REMOTE_HOSTNAME
+
+includeBootscript sshd
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+echo "PermitRootLogin no" >> /etc/ssh/sshd_config
+
+echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+echo "ChallengeResponseAuthentication no" >> /etc/ssh/sshd_config
+
+sed 's@d/login@d/sshd@g' /etc/pam.d/login > /etc/pam.d/sshd
+chmod 644 /etc/pam.d/sshd
+echo "UsePAM yes" >> /etc/ssh/sshd_config
+
+#################
+} # END OF FILE #
+#################
+

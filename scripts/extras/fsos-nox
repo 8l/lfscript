@@ -1,0 +1,171 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://www.lfscript.org/sources/fsos_boot.png
+          http://www.lfscript.org/sources/MnmKr16-IBMPC.psf.gz"
+MD5SUMLIST="f7828ddf8eef71a2d269462d9cef3a03
+            4ad62706f96d28304a501b96ecd107a7"
+REQUIRES="alsa-utils btrfs-progs buildiso-dep dhcpcd kernel-live nano networkmanager os-prober postlfs wget which wpa_supplicant"
+POSTINST="true"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+# Install the custom font
+mkdir -pv ${FAKEROOT}/usr/share/consolefonts
+mkdir -pv ${FAKEROOT}/etc/sysconfig
+
+cat MnmKr16-IBMPC.psf.gz > ${FAKEROOT}/usr/share/consolefonts/MnmKr16-IBMPC.psf.gz
+
+cat > ${FAKEROOT}/etc/sysconfig/console << "EOF"
+# Begin /etc/sysconfig/console
+
+FONT="MnmKr16-IBMPC -m 8859-1"
+
+# End /etc/sysconfig/console
+EOF
+
+# Prepare a LiveCD configuration with a graphical boot menu
+local LIVEDIR="usr/share/live"
+
+mkdir -pv ${FAKEROOT}/${LIVEDIR}/medium/boot/isolinux
+cat fsos_boot.png > ${FAKEROOT}/${LIVEDIR}/medium/boot/isolinux/fsos_boot.png 
+
+cat > ${FAKEROOT}/${LIVEDIR}/medium/boot/isolinux/isolinux.cfg << "EOF"
+DEFAULT vesamenu.c32
+PROMPT 0
+TIMEOUT 300
+
+MENU BACKGROUND fsos_boot.png
+
+MENU COLOR border 0 #00000000 #00000000 none
+MENU COLOR title  0 #00000000 #00000000 none
+MENU COLOR tabmsg 0 #00000000 #00000000 none
+MENU COLOR unsel  0 #FFFFFFFF #00000000 none
+MENU COLOR hotkey 0 #FFFFFFFF #00000000 none
+MENU COLOR sel    0 #FF006080 #FFFFFFFF none
+MENU COLOR hotsel 0 #FF006080 #FFFFFFFF none
+
+MENU VSHIFT 15
+MENU MARGIN 22
+MENU ROWS 4
+MENU TIMEOUTROW -1
+MENU CMDLINEROW -1
+
+INCLUDE i486.cfg
+INCLUDE i586.cfg
+INCLUDE i686.cfg
+INCLUDE x86_64.cfg
+INCLUDE memtest86.cfg
+
+LABEL harddisk
+    MENU LABEL Boot from first ^Hard disk
+    LOCALBOOT 0x80
+
+EOF
+
+cat > ${FAKEROOT}/${LIVEDIR}/medium/boot/isolinux/$(uname -m).cfg << "EOF"
+LABEL system_<ARCH>
+    MENU LABEL ^Boot the live system (<ARCH>)
+    KERNEL /boot/<ARCH>/vmlinuz
+    APPEND initrd=/boot/<ARCH>/initram.fs vga=769 quiet
+EOF
+sed -i "s/<ARCH>/$(uname -m)/g" ${FAKEROOT}/${LIVEDIR}/medium/boot/isolinux/$(uname -m).cfg
+
+# If this system is to be used as a Live CD, configure it as such
+cat > ${FAKEROOT}/${LIVEDIR}/sec_init.sh << EndOfFile
+#!/bin/busybox sh
+
+# This script modifies the system at boot time, but only if it is started from
+# a Live CD. This way, the system image remains clean of any Live CD specific
+# settings, and can be installed to harddisk as a normal OS.
+
+# Print a welcome message before login
+b="\033[1;34m" # Light Blue
+c="\033[0;1m"  # Bright White
+d="\033[1;33m" # Bright Yellow
+e="\033[1;31m" # Bright Red
+
+(/bin/busybox clear;
+ echo -en "\${b}______________________________________________________________";
+ echo -e "___";
+ echo -e "";
+ echo -e "\${c}  Welcome to the 'From Script' Live OS! ";
+ echo -e "";
+ echo -e "\${b}    Created on \${d}_DATE_STAMP_\${b}.";
+ echo -e "\${b}    Created with an \${e}$(uname -m)\${b} processor.";
+ echo -e "\${b}    You are now using an \${e}\\m\${b} processor.";
+ echo -e "";
+ echo -e "\${c}  Login instructions:";
+ echo -e "\${b}    In addition to the 'root' account, an unpriviledged account";
+ echo -e "\${b}    called 'user' is also available. There is no password set";
+ echo -e "\${b}    for either account.";
+ echo -en "\${b}______________________________________________________________";
+ echo -e "___";
+ echo -e "\033[0m") > \${ROOT}/etc/issue
+
+# Configure users
+cat > \${ROOT}/etc/rc.d/rcS.d/S80livesetup << "EOF"
+#!/bin/sh
+
+case "\${1}" in
+    start)
+        # Add a normal user with sound card privileges
+        groupadd user
+        useradd -m user -g user -G audio
+
+        # Remove passwords for LiveCD users
+        echo "user:" | chpasswd
+        echo "root:" | chpasswd
+        ;;
+    *)
+        echo "Usage: \${0} {start}"
+        exit 1
+        ;;
+esac
+EOF
+chmod 755 \${ROOT}/etc/rc.d/rcS.d/S80livesetup
+
+EndOfFile
+chmod +x ${FAKEROOT}/${LIVEDIR}/sec_init.sh
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+local LIVEBOOT="/usr/share/live/medium/boot"
+
+# Slightly change the colors of the "OK" messages on boot
+sed -i 's@#BRACKET="\\\\033\[1;34m" # Blue@BRACKET="\\\\033\[0;34m"@g' \
+        /etc/sysconfig/rc.site
+sed -i 's@#SUCCESS="\\\\033\[1;32m" # Green@SUCCESS="\\\\033\[1;34m"@g' \
+        /etc/sysconfig/rc.site
+
+# Apply a datestamp
+local DATESTAMP="$(date +%B\ %d,\ %C%y)"
+sed -i "s@_DATE_STAMP_@${DATESTAMP}@g" /usr/share/live/sec_init.sh
+
+# Ensure the installed version of syslinux' vesamenu is copied to the live cd
+cp -v /usr/share/syslinux/vesamenu.c32 ${LIVEBOOT}/isolinux
+
+# If memtest has been installed, make it available in the live cd boot menu
+[ ! -r /boot/memtest86 ] ||
+cp -v /boot/memtest86 ${LIVEBOOT}
+
+[ ! -r /boot/memtest86 ] ||
+cat > ${LIVEBOOT}/isolinux/memtest86.cfg << "EOF"
+LABEL memtest86
+    MENU LABEL ^Memory test (Memtest86+)
+    KERNEL /boot/memtest86
+EOF
+
+# Set distribution codename
+sed 's/<your name here>/fsOS (LFScript 4)/g' -i /etc/lsb-release
+
+#################
+} # END OF FILE #
+#################
+

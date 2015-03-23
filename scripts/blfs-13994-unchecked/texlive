@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://tug.org/texlive/historic/2014/texlive-20140525-source.tar.xz"
+MD5SUMLIST="09ee265ff51637827559affc7304078c"
+REQUIRES="tl-installer"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+mkdir texlive-build
+cd texlive-build
+
+../configure                                        \
+    --prefix=/opt/texlive/2014                      \
+    --bindir=/opt/texlive/2014/bin/x86_64-linux     \
+    --datarootdir=/opt/texlive/2014                 \
+    --includedir=/usr/include                       \
+    --infodir=/opt/texlive/2014/texmf-dist/doc/info \
+    --libdir=/usr/lib                               \
+    --mandir=/opt/texlive/2014/texmf-dist/doc/man   \
+    --disable-native-texlive-build                  \
+    --disable-static --enable-shared                \
+    --with-system-cairo                             \
+    --with-system-fontconfig                        \
+    --with-system-freetype2                         \
+    --with-system-graphite2                         \
+    --with-system-harfbuzz                          \
+    --with-system-icu                               \
+    --with-system-libgs                             \
+    --with-system-libpng                            \
+    --with-system-pixman                            \
+    --with-system-poppler                           \
+    --with-system-xpdf                              \
+    --with-system-zlib                              \
+    --with-banner-add=" - BLFS"
+
+pushd ../utils/asymptote
+    echo "ac_cv_lib_m_sqrt=yes"     >config.cache
+    echo "ac_cv_lib_z_deflate=yes" >>config.cache
+
+./configure LIBS="-ltirpc "                         \
+    --prefix=/opt/texlive/2014/                     \
+    --bindir=/opt/texlive/2014/bin/x86_64-linux     \
+    --enable-texlive-build                          \
+    --datarootdir=/opt/texlive/2014/texmf-dist      \
+    --infodir=/opt/texlive/2014/texmf-dist/doc/info \
+    --mandir=/opt/texlive/2014/texmf-dist/doc/man   \
+    --cache-file=config.cache
+popd
+
+make
+make -C ../utils/asymptote
+
+make install
+make -C ../utils/asymptote install
+
+#################
+} # END OF FILE #
+#################
+

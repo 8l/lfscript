@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://curl.haxx.se/download/curl-7.37.1.tar.bz2"
+MD5SUMLIST="95c627abcf6494f5abe55effe7cd6a57"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr              \
+            --disable-static           \
+            --enable-threaded-resolver
+make
+
+cat >> tests/data/DISABLED << "EOF"
+numb1
+...
+numbN
+...
+EOF
+
+make DESTDIR=${FAKEROOT} install
+find docs \( -name "Makefile*" -o -name "*.1" -o -name "*.3" \) -exec rm {} \;
+install -v -d -m755 ${FAKEROOT}/usr/share/doc/curl-7.37.1
+cp -v -R docs/*     ${FAKEROOT}/usr/share/doc/curl-7.37.1
+
+#################
+} # END OF FILE #
+#################
+

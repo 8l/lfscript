@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/icewm/icewm-1.3.8.tar.gz"
+MD5SUMLIST="6d61aced3bd20b9e7caeb7e8380368c8"
+REQUIRES="gdk-pixbuf xorg"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i '/^LIBS/s/\(.*\)/\1 -lfontconfig/' src/Makefile.in
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} install-docs
+make DESTDIR=${FAKEROOT} install-man
+make DESTDIR=${FAKEROOT} install-desktop
+
+echo icewm-session > ${FAKEROOT}/etc/alternatives/xinitrc/icewm.xinitrc
+
+mkdir -v ${FAKEROOT}/etc/skel/.icewm
+cp -v ${FAKEROOT}/usr/share/icewm/keys ${FAKEROOT}/etc/skel/.icewm/keys
+cp -v ${FAKEROOT}/usr/share/icewm/menu ${FAKEROOT}/etc/skel/.icewm/menu
+cp -v ${FAKEROOT}/usr/share/icewm/preferences ${FAKEROOT}/etc/skel/.icewm/preferences
+cp -v ${FAKEROOT}/usr/share/icewm/toolbar ${FAKEROOT}/etc/skel/.icewm/toolbar
+cp -v ${FAKEROOT}/usr/share/icewm/winoptions ${FAKEROOT}/etc/skel/.icewm/winoptions
+
+cat > ${FAKEROOT}/etc/skel/.icewm/menu << "EOF"
+prog Urxvt xterm urxvt
+prog GVolWheel /usr/share/pixmaps/gvolwheel/audio-volume-medium gvolwheel
+separator
+menufile General folder general
+menufile Multimedia folder multimedia
+menufile Tool_bar folder toolbar
+EOF
+>cat > ${FAKEROOT}/etc/skel/.icewm/general << "EOF"
+prog Firefox firefox firefox
+prog Epiphany /usr/share/icons/gnome/16x16/apps/web-browser epiphany
+prog Midori /usr/share/icons/hicolor/24x24/apps/midori midori
+separator
+prog Gimp /usr/share/icons/hicolor/16x16/apps/gimp gimp
+separator
+prog Evince /usr/share/icons/hicolor/16x16/apps/evince evince
+prog Epdfview /usr/share/epdfview/pixmaps/icon_epdfview-48 epdfview
+EOF
+>cat > ${FAKEROOT}/etc/skel/.icewm/multimedia << "EOF"
+prog Audacious /usr/share/icons/hicolor/48x48/apps/audacious audacious
+separator
+prog Parole /usr/share/icons/hicolor/16x16/apps/parole parole
+prog Totem /usr/share/icons/hicolor/16x16/apps/totem totem
+prog Vlc /usr/share/icons/hicolor/16x16/apps/vlc vlc
+prog Xine /usr/share/pixmaps/xine xine
+EOF
+
+cat > ${FAKEROOT}/etc/skel/.icewm/startup << "EOF"
+rox -p Default &
+EOF
+chmod +x ${FAKEROOT}/etc/skel/.icewm/startup
+
+#################
+} # END OF FILE #
+#################
+

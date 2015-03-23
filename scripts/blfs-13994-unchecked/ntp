@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/ntp-4.2.6p5.tar.gz
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="00df80a84ec9528fcfb09498075525bc
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+TAGS="preinst"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr         \
+            --sysconfdir=/etc     \
+            --enable-linuxcaps    \
+            --with-binsubdir=sbin \
+            --with-lineeditlibs=readline
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -o ntp -g ntp -d ${FAKEROOT}/var/lib/ntp
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/ntp-4.2.6p5
+cp -v -R html/* ${FAKEROOT}/usr/share/doc/ntp-4.2.6p5/
+
+cat > ${FAKEROOT}/etc/ntp.conf << "EOF"
+# Asia
+server 0.asia.pool.ntp.org
+
+# Australia
+server 0.oceania.pool.ntp.org
+
+# Europe
+server 0.europe.pool.ntp.org
+
+# North America
+server 0.north-america.pool.ntp.org
+
+# South America
+server 2.south-america.pool.ntp.org
+
+driftfile /var/lib/ntp/ntp.drift
+pidfile   /var/run/ntpd.pid
+EOF
+
+includeBootscript ntpd
+
+#################################################
+}; preinst() { # PRE-INSTALLATION CONFIGURATION #
+#################################################
+
+groupadd -g 87 ntp
+useradd -c "Network Time Protocol" -d /var/lib/ntp -u 87 \
+        -g ntp -s /bin/false ntp
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+ln -v -sf ../init.d/setclock /etc/rc.d/rc0.d/K46setclock
+ln -v -sf ../init.d/setclock /etc/rc.d/rc6.d/K46setclock
+
+#################
+} # END OF FILE #
+#################
+

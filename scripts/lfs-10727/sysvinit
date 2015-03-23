@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://download.savannah.gnu.org/releases/sysvinit/sysvinit-2.88dsf.tar.bz2
+          http://www.linuxfromscratch.org/patches/lfs/development/sysvinit-2.88dsf-consolidated-1.patch"
+MD5SUMLIST="6eda8a97b86e0a6f59dabbf25202aa6f
+            0b7b5ea568a878fdcc4057b2bf36e5cb"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../sysvinit-2.88dsf-consolidated-1.patch
+
+make -C src
+
+make ROOT=${FAKEROOT} -C src install
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/openjade/OpenSP-1.5.2.tar.gz"
+MD5SUMLIST="670b223c5d12cee40c9137be86b6c39b"
+REQUIRES="sgml-common"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's/32,/253,/' lib/Syntax.cxx
+sed -i 's/LITLEN          240 /LITLEN          8092/' \
+    unicode/{gensyntax.pl,unicode.syn}
+
+./configure --prefix=/usr                              \
+            --disable-static                           \
+            --disable-doc-build                        \
+            --enable-default-catalog=/etc/sgml/catalog \
+            --enable-http                              \
+            --enable-default-search-path=/usr/share/sgml
+
+make pkgdatadir=/usr/share/sgml/OpenSP-1.5.2
+
+make DESTDIR=${FAKEROOT} pkgdatadir=/usr/share/sgml/OpenSP-1.5.2 install
+ln -v -sf onsgmls ${FAKEROOT}/usr/bin/nsgmls
+ln -v -sf osgmlnorm ${FAKEROOT}/usr/bin/sgmlnorm
+ln -v -sf ospam ${FAKEROOT}/usr/bin/spam
+ln -v -sf ospcat ${FAKEROOT}/usr/bin/spcat
+ln -v -sf ospent ${FAKEROOT}/usr/bin/spent
+ln -v -sf osx ${FAKEROOT}/usr/bin/sx
+ln -v -sf osx ${FAKEROOT}/usr/bin/sgml2xml
+ln -v -sf libosp.so ${FAKEROOT}/usr/lib/libsp.so
+
+#################
+} # END OF FILE #
+#################
+

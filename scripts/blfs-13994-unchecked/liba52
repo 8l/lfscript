@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://liba52.sourceforge.net/files/a52dec-0.7.4.tar.gz"
+MD5SUMLIST="caa9f5bc44232dc8aeea773fea56be80"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --mandir=/usr/share/man \
+            --enable-shared \
+            --disable-static \
+            CFLAGS="-g -O2 $([ $(uname -m) = x86_64 ] && echo -fPIC)"
+make
+
+make DESTDIR=${FAKEROOT} install
+cp liba52/a52_internal.h ${FAKEROOT}/usr/include/a52dec
+install -v -m644 -D doc/liba52.txt \
+    ${FAKEROOT}/usr/share/doc/liba52-0.7.4/liba52.txt
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://launchpad.net/intltool/trunk/0.50.2/+download/intltool-0.50.2.tar.gz"
+MD5SUMLIST="23fbd879118253cb99aeac067da5f591"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -Dm644 doc/I18N-HOWTO ${FAKEROOT}/usr/share/doc/intltool-0.50.2/I18N-HOWTO
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+WGETLIST="http://ftp.de.debian.org/debian/pool/main/o/os-prober/os-prober_1.63.tar.gz"
+MD5SUMLIST="16c999d00a925968c99a8ca8cc9a3c3a"
+REQUIRES="which"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+make
+
+mkdir -pv ${FAKEROOT}/usr/{lib,share}/os-prober
+cp -v os-prober ${FAKEROOT}/usr/bin
+cp -v linux-boot-prober ${FAKEROOT}/usr/bin
+cp -v newns ${FAKEROOT}/usr/lib/os-prober
+cp -v common.sh ${FAKEROOT}/usr/share/os-prober
+
+mkdir -pv ${FAKEROOT}/usr/lib/linux-boot-probes/mounted
+mkdir -pv ${FAKEROOT}/usr/lib/os-probes/{init,mounted}
+
+cp -v linux-boot-probes/common/*         ${FAKEROOT}/usr/lib/linux-boot-probes
+cp -v linux-boot-probes/mounted/common/* ${FAKEROOT}/usr/lib/linux-boot-probes/mounted
+cp -v linux-boot-probes/mounted/x86/*    ${FAKEROOT}/usr/lib/linux-boot-probes/mounted
+
+cp -v  os-probes/common/*         ${FAKEROOT}/usr/lib/os-probes
+cp -v  os-probes/init/common/*    ${FAKEROOT}/usr/lib/os-probes/init
+cp -v  os-probes/mounted/common/* ${FAKEROOT}/usr/lib/os-probes/mounted
+cp -vR os-probes/mounted/x86/*    ${FAKEROOT}/usr/lib/os-probes/mounted
+
+mkdir -pv ${FAKEROOT}/var/lib/os-prober
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnome.org/pub/gnome/sources/gvfs/1.20/gvfs-1.20.2.tar.xz"
+MD5SUMLIST="da2a542ea68b5294e41c0e23216ffdf9"
+REQUIRES="dbus glib2"
+POSTINST="true"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --disable-gphoto2
+make
+
+make DESTDIR=${FAKEROOT} install
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+glib-compile-schemas /usr/share/glib-2.0/schemas
+
+#################
+} # END OF FILE #
+#################
+

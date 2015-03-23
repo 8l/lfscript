@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu//gmp/gmp-6.0.0a.tar.xz"
+MD5SUMLIST="1e6da4e434553d2811437aa42c7f7c76"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --enable-cxx  \
+            --docdir=/usr/share/doc/gmp-6.0.0a
+
+make
+make html
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} install-html
+
+#################
+} # END OF FILE #
+#################
+

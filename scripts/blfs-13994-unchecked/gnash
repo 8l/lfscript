@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/pub/gnu/gnash/0.8.10/gnash-0.8.10.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/gnash-0.8.10-CVE-2012-1175-1.patch"
+MD5SUMLIST="63e9f79c41d93d48c5a2fa94856548c4
+            dontverify"
+REQUIRES="agg boost curl giflib gst-ffmpeg npapi-sdk"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../gnash-0.8.10-CVE-2012-1175-1.patch
+sed -i '/^LIBS/s/\(.*\)/\1 -lboost_system/' \
+    gui/Makefile.in utilities/Makefile.in
+sed -e '/DGifOpen/s:Data:&, NULL:'          \
+    -e '/DGifCloseFile/s:_gif:&, NULL:'     \
+    -i libbase/GnashImageGif.cpp
+sed -i '/#include <csignal>/a\#include <unistd.h>' plugin/klash4/klash_part.cpp
+
+./configure --prefix=/usr --sysconfdir=/etc               \
+  --with-npapi-incl=/usr/include/npapi-sdk --enable-media=gst \
+  --with-npapi-plugindir=/usr/lib/mozilla/plugins         \
+  --without-gconf
+make
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} install-plugin
+
+#################
+} # END OF FILE #
+#################
+

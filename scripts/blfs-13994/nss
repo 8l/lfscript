@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_16_4_RTM/src/nss-3.16.4.tar.gz
+          http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.16.4-standalone-1.patch"
+MD5SUMLIST="3f820cae445405807cf74d0b91a9d8f9
+            6f63c207c43669718838869e12a7813c"
+REQUIRES="nspr"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../nss-3.16.4-standalone-1.patch
+cd nss
+make BUILD_OPT=1                      \
+  NSPR_INCLUDE_DIR=/usr/include/nspr  \
+  USE_SYSTEM_ZLIB=1                   \
+  ZLIB_LIBS=-lz                       \
+  $([ $(uname -m) = x86_64 ] && echo USE_64=1) \
+  $([ -f /usr/include/sqlite3.h ] && echo NSS_USE_SYSTEM_SQLITE=1) -j1
+
+cd ../dist
+install -v -m755 Linux*/lib/*.so              ${FAKEROOT}/usr/lib
+install -v -m644 Linux*/lib/{*.chk,libcrmf.a} ${FAKEROOT}/usr/lib
+install -v -m755 -d                           ${FAKEROOT}/usr/include/nss
+cp -v -RL {public,private}/nss/*              ${FAKEROOT}/usr/include/nss
+chmod -v 644                                  ${FAKEROOT}/usr/include/nss/*
+install -v -m755 Linux*/bin/{certutil,nss-config,pk12util} ${FAKEROOT}/usr/bin
+install -v -m644 Linux*/lib/pkgconfig/nss.pc  ${FAKEROOT}/usr/lib/pkgconfig
+
+#################
+} # END OF FILE #
+#################
+

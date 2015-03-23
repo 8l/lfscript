@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://web.mit.edu/kerberos/www/dist/krb5/1.12/krb5-1.12.2-signed.tar
+          http://www.linuxfromscratch.org/blfs/downloads/svn/blfs-bootscripts-20140810.tar.bz2"
+MD5SUMLIST="357f1312b7720a0a591e22db0f7829fe
+            179a6c22d0f7d2619cba4eb794fdc1cb"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+gpg2 --verify krb5-1.12.2.tar.gz.asc krb5-1.12.2.tar.gz
+
+gpg2 --pgp2 --keyserver pgp.mit.edu --recv-keys 0x749D7889
+
+cd src
+sed -e "s@python2.5/Python.h@& python2.7/Python.h@g" \
+    -e "s@-lpython2.5]@&,\n  AC_CHECK_LIB(python2.7,main,[PYTHON_LIB=-lpython2.7])@g" \
+    -i configure.in
+sed -e 's@\^u}@^u cols 300}@' \
+    -i tests/dejagnu/config/default.exp
+autoconf
+./configure --prefix=/usr            \
+            --sysconfdir=/etc        \
+            --localstatedir=/var/lib \
+            --with-system-et         \
+            --with-system-ss         \
+            --with-system-verto=no   \
+            --enable-dns-for-realm
+make
+
+make DESTDIR=${FAKEROOT} install
+
+for LIBRARY in gssapi_krb5 gssrpc k5crypto kadm5clnt kadm5srv \
+               kdb5 kdb_ldap krad krb5 krb5support verto ; do
+    chmod -v 755 ${FAKEROOT}/usr/lib/lib$LIBRARY.so
+done
+
+mv -v ${FAKEROOT}/usr/lib/libkrb5.so.3*        ${FAKEROOT}/lib
+mv -v ${FAKEROOT}/usr/lib/libk5crypto.so.3*    ${FAKEROOT}/lib
+mv -v ${FAKEROOT}/usr/lib/libkrb5support.so.0* ${FAKEROOT}/lib
+
+ln -v -sf ../../lib/libkrb5.so.3.3        ${FAKEROOT}/usr/lib/libkrb5.so
+ln -v -sf ../../lib/libk5crypto.so.3.1    ${FAKEROOT}/usr/lib/libk5crypto.so
+ln -v -sf ../../lib/libkrb5support.so.0.1 ${FAKEROOT}/usr/lib/libkrb5support.so
+
+mv -v ${FAKEROOT}/usr/bin/ksu ${FAKEROOT}/bin
+chmod -v 755 ${FAKEROOT}/bin/ksu
+
+install -v -dm755 ${FAKEROOT}/usr/share/doc/krb5-1.12.2
+cp -vfr ../doc/*  ${FAKEROOT}/usr/share/doc/krb5-1.12.2
+
+unset LIBRARY
+
+cat > ${FAKEROOT}/etc/krb5.conf << "EOF"
+# Begin /etc/krb5.conf
+
+[libdefaults]
+    default_realm = <LFS.ORG>
+    encrypt = true
+
+[realms]
+    <LFS.ORG> = {
+        kdc = <belgarath.lfs.org>
+        admin_server = <belgarath.lfs.org>
+        dict_file = /usr/share/dict/words
+    }
+
+[domain_realm]
+    .<lfs.org> = <LFS.ORG>
+
+[logging]
+    kdc = SYSLOG[:INFO[:AUTH]]
+    admin_server = SYSLOG[INFO[:AUTH]]
+    default = SYSLOG[[:SYS]]
+
+# End /etc/krb5.conf
+EOF
+
+includeBootscript krb5
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+kdb5_util create -r <LFS.ORG> -s
+
+kadmin.local
+kadmin.local: add_policy dict-only
+kadmin.local: addprinc -policy dict-only <loginname>
+
+kadmin.local: addprinc -randkey host/<belgarath.lfs.org>
+
+kadmin.local: ktadd host/<belgarath.lfs.org>
+
+/usr/sbin/krb5kdc
+
+kinit <loginname>
+
+klist
+
+ktutil
+ktutil: rkt /etc/krb5.keytab
+ktutil: l
+
+#################
+} # END OF FILE #
+#################
+

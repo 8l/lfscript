@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://lynx.isc.org/current/lynx2.8.8rel.2.tar.bz2"
+MD5SUMLIST="b231c2aa34dfe7ca25681ef4e55ee7e8"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr          \
+            --sysconfdir=/etc/lynx \
+            --datadir=/usr/share/doc/lynx-2.8.8rel.2 \
+            --with-zlib            \
+            --with-bzlib           \
+            --with-screen=ncursesw \
+            --enable-locale-charset
+make
+
+make DESTDIR=${FAKEROOT} install-full
+chgrp -v -R root ${FAKEROOT}/usr/share/doc/lynx-2.8.8rel.2/lynx_doc
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+sed -i 's/#\(LOCALE_CHARSET\):FALSE/\1:TRUE/' /etc/lynx/lynx.cfg
+
+sed -i 's/#\(DEFAULT_EDITOR\):/\1:vi/' /etc/lynx/lynx.cfg
+
+sed -i 's/#\(PERSISTENT_COOKIES\):FALSE/\1:TRUE/' /etc/lynx/lynx.cfg
+
+#################
+} # END OF FILE #
+#################
+

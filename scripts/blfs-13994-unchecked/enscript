@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/gnu/enscript/enscript-1.6.6.tar.gz"
+MD5SUMLIST="3acc242b829adacabcaf28533f049afd"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr              \
+            --sysconfdir=/etc/enscript \
+            --localstatedir=/var       \
+            --with-media=Letter
+make
+
+pushd docs
+  makeinfo --plaintext -o enscript.txt enscript.texi
+popd
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/enscript-1.6.6
+install -v -m644    README* *.txt docs/*.txt \
+                    ${FAKEROOT}/usr/share/doc/enscript-1.6.6
+
+install -v -m644 docs/*.{dvi,pdf,ps} \
+                 ${FAKEROOT}/usr/share/doc/enscript-1.6.6
+
+#################
+} # END OF FILE #
+#################
+

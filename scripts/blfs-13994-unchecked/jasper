@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.ece.uvic.ca/~mdadams/jasper/software/jasper-1.900.1.zip
+          http://www.linuxfromscratch.org/patches/blfs/svn/jasper-1.900.1-security_fixes-1.patch"
+MD5SUMLIST="a342b2b4495b3e1394e161eb5d85d754
+            dontverify"
+REQUIRES="unzip"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../jasper-1.900.1-security_fixes-1.patch
+./configure --prefix=/usr    \
+            --enable-shared  \
+            --disable-static \
+            --mandir=/usr/share/man
+make
+
+make DESTDIR=${FAKEROOT} install
+
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/jasper-1.900.1
+install -v -m644 doc/*.pdf ${FAKEROOT}/usr/share/doc/jasper-1.900.1
+
+#################
+} # END OF FILE #
+#################
+

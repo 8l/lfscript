@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# This file is part of LFScript. LFScript is released under the MIT license.
+# Copyright (C) 2007-2014 Marcel van den Boer
+
+REQUIRES="wget"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cat > ${FAKEROOT}/usr/sbin/install-flash-plugin << "EOF"
+#!/bin/sh
+# This script downloads and installs Adobe Flash Player.
+set -e
+
+getFlashPlayer() {
+    local ARCH="$(uname -m)"
+    case $(uname -m) in
+        i?86) local ARCH="i386" ;;
+    esac
+
+    local FILENAME="install_flash_player_11_linux.${ARCH}.tar.gz"
+    local URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.1.102.55/${FILENAME}"
+
+    local TEMP_DIR="$(mktemp -d)"
+    pushd "${TEMP_DIR}"
+
+    wget "${URL}"
+    tar xf "${FILENAME}"
+
+    cp -vR usr /
+    mkdir -p /usr/lib/mozilla/plugins
+    cp -v libflashplayer.so /usr/lib/mozilla/plugins
+
+    popd
+    rm -rf "${TMP_DIR}"
+
+    echo "Done!"
+}
+
+getFlashPlayer
+EOF
+
+chmod 755 ${FAKEROOT}/usr/sbin/install-flash-plugin
+
+#################
+} # END OF FILE #
+#################
+

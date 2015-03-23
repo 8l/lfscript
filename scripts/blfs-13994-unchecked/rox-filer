@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/rox/rox-filer-2.11.tar.bz2"
+MD5SUMLIST="0eebf05a67f7932367750ebf9faf215d"
+REQUIRES="libglade shared-mime-info"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cd ROX-Filer
+sed -i 's:g_strdup(getenv("APP_DIR")):"/usr/share/rox":' src/main.c
+
+mkdir build
+pushd build
+  ../src/configure LIBS="-lm -ldl"
+  make
+popd
+
+mkdir -p ${FAKEROOT}/usr/share/rox
+cp -av Help Messages Options.xml ROX images style.css .DirIcon ${FAKEROOT}/usr/share/rox
+
+cp -av ../rox.1 ${FAKEROOT}/usr/share/man/man1
+cp -v  ROX-Filer ${FAKEROOT}/usr/bin/rox
+chown -Rv root:root ${FAKEROOT}/usr/bin/rox ${FAKEROOT}/usr/share/rox
+
+cd ${FAKEROOT}/usr/share/rox/ROX/MIME
+ln -sv text-x-{diff,patch}.png
+ln -sv application-x-font-{afm,type1}.png
+ln -sv application-xml{,-dtd}.png
+ln -sv application-xml{,-external-parsed-entity}.png
+ln -sv application-{,rdf+}xml.png
+ln -sv application-x{ml,-xbel}.png
+ln -sv application-{x-shell,java}script.png
+ln -sv application-x-{bzip,xz}-compressed-tar.png
+ln -sv application-x-{bzip,lzma}-compressed-tar.png
+ln -sv application-x-{bzip-compressed-tar,lzo}.png
+ln -sv application-x-{bzip,xz}.png
+ln -sv application-x-{gzip,lzma}.png
+ln -sv application-{msword,rtf}.png
+
+cat > ${FAKEROOT}/path/to/hostname/AppRun << "HERE_DOC"
+#!/bin/bash
+
+MOUNT_PATH="${0%/*}"
+HOST=${MOUNT_PATH##*/}
+export MOUNT_PATH HOST
+sshfs -o nonempty ${HOST}:/ ${MOUNT_PATH}
+rox -x ${MOUNT_PATH}
+HERE_DOC
+
+chmod 755 ${FAKEROOT}/path/to/hostname/AppRun
+
+cat > ${FAKEROOT}/usr/bin/myumount << "HERE_DOC"
+#!/bin/bash
+sync
+if mount | grep "${@}" | grep -q fuse
+then fusermount -u "${@}"
+else umount "${@}"
+fi
+HERE_DOC
+
+chmod 755 ${FAKEROOT}/usr/bin/myumount
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+ln -s ../rox/.DirIcon /usr/share/pixmaps/rox.png
+mkdir -p /usr/share/applications
+
+cat > /usr/share/applications/rox.desktop << "HERE_DOC"
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Name=Rox
+Comment=The Rox File Manager
+Icon=rox
+Exec=rox
+Categories=GTK;Utility;Application;System;Core;
+StartupNotify=true
+Terminal=false
+HERE_DOC
+
+#################
+} # END OF FILE #
+#################
+

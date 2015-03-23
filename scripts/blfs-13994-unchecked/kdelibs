@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://download.kde.org/stable/4.13.3/src/kdelibs-4.13.3.tar.xz"
+MD5SUMLIST="f58d9277127aad95b3032e2546f3006d"
+REQUIRES="attica docbook docbook-xsl libdbusmenuqt phonon shared-mime-info strigi"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i "s@{SYSCONF_INSTALL_DIR}/xdg/menus@& RENAME kde-applications.menu@" \
+        kded/CMakeLists.txt
+
+sed -i "s@applications.menu@kde-&@" \
+        kded/kbuildsycoca.cpp
+
+sed -i "/DGifCloseFile/s:file:&, NULL:g" \
+       khtml/imload/decoders/gifloader.cpp
+
+mkdir build
+cd    build
+
+cmake -DCMAKE_INSTALL_PREFIX=$KDE_PREFIX \
+      -DSYSCONF_INSTALL_DIR=/etc         \
+      -DCMAKE_BUILD_TYPE=Release         \
+      -DDOCBOOKXML_CURRENTDTD_DIR=/usr/share/xml/docbook/xml-dtd-4.5 \
+      -Wno-dev ..
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

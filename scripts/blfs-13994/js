@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.mozilla.org/pub/mozilla.org/js/mozjs17.0.0.tar.gz"
+MD5SUMLIST="20b6f8f1140ef6e47daa3b16965c9202"
+REQUIRES="libffi nspr python2 zip"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+cd js/src
+./configure --prefix=/usr       \
+            --enable-readline   \
+            --enable-threadsafe \
+            --with-system-ffi   \
+            --with-system-nspr
+make
+
+make DESTDIR=${FAKEROOT} install
+find ${FAKEROOT}/usr/include/js-17.0/            \
+     ${FAKEROOT}/usr/lib/libmozjs-17.0.a         \
+     ${FAKEROOT}/usr/lib/pkgconfig/mozjs-17.0.pc \
+     -type f -exec chmod -v 644 {} \;
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://space.mit.edu/pub/davis/slang/v2.2/slang-2.2.4.tar.bz2"
+MD5SUMLIST="7fcfd447e378f07dd0c0bae671fe6487"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --with-readline=gnu
+make -j1
+
+make DESTDIR=${FAKEROOT} install_doc_dir=/usr/share/doc/slang-2.2.4   \
+     SLSH_DOC_DIR=/usr/share/doc/slang-2.2.4/slsh \
+     install-all
+
+chmod -v 755 ${FAKEROOT}/usr/lib/libslang.so.2.2.4 \
+             ${FAKEROOT}/usr/lib/slang/v2/modules/*.so
+
+#################
+} # END OF FILE #
+#################
+

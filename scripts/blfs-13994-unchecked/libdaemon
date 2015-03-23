@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://pkgs.fedoraproject.org/repo/pkgs/libdaemon/libdaemon-0.14.tar.gz/509dc27107c21bcd9fbf2f95f5669563/libdaemon-0.14.tar.gz"
+MD5SUMLIST="509dc27107c21bcd9fbf2f95f5669563"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --disable-static
+make
+
+make -C doc doxygen
+
+make DESTDIR=${FAKEROOT} docdir=/usr/share/doc/libdaemon-0.14 install
+
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/libdaemon-0.14/api
+install -v -m644 doc/reference/html/* ${FAKEROOT}/usr/share/doc/libdaemon-0.14/api
+install -v -m644 doc/reference/man/man3/* ${FAKEROOT}/usr/share/man/man3
+
+#################
+} # END OF FILE #
+#################
+

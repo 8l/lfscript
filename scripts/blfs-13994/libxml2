@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://xmlsoft.org/sources/libxml2-2.9.1.tar.gz
+          http://www.w3.org/XML/Test/xmlts20130923.tar.gz"
+MD5SUMLIST="9c0cfef285d5c4a5c80d00904ddab380
+            ef8fbe0c92efd9a60d7f320e211d10b2"
+RECOMMENDS="python2"
+
+# (*) Install 'python2' because it is required to build Mesa (and therefore Xorg)
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar xf ../xmlts20130923.tar.gz
+
+./configure --prefix=/usr --disable-static --with-history
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

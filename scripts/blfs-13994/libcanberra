@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://pkgs.fedoraproject.org/repo/pkgs/libcanberra/libcanberra-0.30.tar.xz/34cb7e4430afaf6f447c4ebdb9b42072/libcanberra-0.30.tar.xz"
+MD5SUMLIST="34cb7e4430afaf6f447c4ebdb9b42072"
+REQUIRES="libvorbis"
+RECOMMENDS="gtk+2"
+
+# (*) Install 'gtk+2' because it enables libcanberra-gtk, which is required by 'Marco'
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --disable-oss
+make
+
+make DESTDIR=${FAKEROOT} docdir=/usr/share/doc/libcanberra-0.30 install
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://files.libburnia-project.org/releases/libisoburn-1.3.8.tar.gz"
+MD5SUMLIST="4f1c2290a2d02bdb709c3707fd9f1ae6"
+REQUIRES="libburn libisofs"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr              \
+            --disable-static           \
+            --enable-pkg-check-modules
+make
+
+# (*) Suppress the building of documentation which requires additional software to be installed
+#doxygen doc/doxygen.conf
+
+make DESTDIR=${FAKEROOT} install
+
+# (*) Suppress the building of documentation which requires additional software to be installed
+#install -v -dm755 ${FAKEROOT}/usr/share/doc/libisoburn-1.3.8
+#install -v -m644 doc/html/* ${FAKEROOT}/usr/share/doc/libisoburn-1.3.8
+
+#################
+} # END OF FILE #
+#################
+

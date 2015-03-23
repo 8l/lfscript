@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-1.6.1.tar.bz2"
+MD5SUMLIST="a5a5060dc2f80bcac700ab0236ea47dc"
+REQUIRES="libgpg-error"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr
+make
+
+# (*) Suppress the building of documentation which requires additional software to be installed
+#make -C doc pdf ps html
+#makeinfo --html --no-split -o doc/gcrypt_nochunks.html doc/gcrypt.texi
+#makeinfo --plaintext       -o doc/gcrypt.txt           doc/gcrypt.texi
+
+make DESTDIR=${FAKEROOT} install
+install -v -dm755   ${FAKEROOT}/usr/share/doc/libgcrypt-1.6.1
+install -v -m644    README doc/{README.apichanges,fips*,libgcrypt*} \
+                    ${FAKEROOT}/usr/share/doc/libgcrypt-1.6.1
+
+# (*) Suppress the building of documentation which requires additional software to be installed
+#install -v -dm755   ${FAKEROOT}/usr/share/doc/libgcrypt-1.6.1/html
+#install -v -m644 doc/gcrypt.html/* \
+#                    ${FAKEROOT}/usr/share/doc/libgcrypt-1.6.1/html
+#install -v -m644 doc/gcrypt_nochunks.html \
+#                    ${FAKEROOT}/usr/share/doc/libgcrypt-1.6.1
+#install -v -m644 doc/gcrypt.{pdf,ps,dvi,txt,texi} \
+#                    ${FAKEROOT}/usr/share/doc/libgcrypt-1.6.1
+
+#################
+} # END OF FILE #
+#################
+

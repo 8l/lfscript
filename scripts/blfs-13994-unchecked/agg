@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://pkgs.fedoraproject.org/repo/pkgs/agg/agg-2.5.tar.gz/0229a488bc47be10a2fee6cf0b2febd6/agg-2.5.tar.gz"
+MD5SUMLIST="0229a488bc47be10a2fee6cf0b2febd6"
+REQUIRES="sdl x7lib"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's:  -L@x_libraries@::' src/platform/X11/Makefile.am
+sed -i '/^AM_C_PROTOTYPES/d'   configure.in
+
+bash autogen.sh --prefix=/usr --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

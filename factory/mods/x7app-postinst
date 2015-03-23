@@ -1,0 +1,13 @@
+# (*) Properly register all installed fonts for X11
+mkdir -p /usr/share/fonts/X11
+pushd /usr/share/fonts/X11
+for dir in $(ls); do
+    pushd ${dir}
+
+    rm -f fonts.scale fonts.dir
+    mkfontscale
+    mkfontdir
+
+    popd
+done
+popd

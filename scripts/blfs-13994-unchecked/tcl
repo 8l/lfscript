@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/tcl/tcl8.6.1-src.tar.gz
+          http://downloads.sourceforge.net/tcl/tcl8.6.1-html.tar.gz"
+MD5SUMLIST="aae4b701ee527c6e4e1a6f9c7399882e
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+tar -xf ../tcl8.6.1-html.tar.gz --strip-components=1
+
+cd unix
+./configure --prefix=/usr           \
+            --without-tzdata        \
+            --mandir=/usr/share/man \
+            $([ $(uname -m) = x86_64 ] && echo --enable-64bit)
+make
+
+sed -e "s@^\(TCL_SRC_DIR='\).*@\1/usr/include'@" \
+    -e "/TCL_B/s@='\(-L\)\?.*unix@='\1/usr/lib@" \
+    -i tclConfig.sh
+
+make DESTDIR=${FAKEROOT} install
+make DESTDIR=${FAKEROOT} install-private-headers
+ln -v -sf tclsh8.6 ${FAKEROOT}/usr/bin/tclsh
+chmod -v 755 ${FAKEROOT}/usr/lib/libtcl8.6.so
+
+mkdir -v -p ${FAKEROOT}/usr/share/doc/tcl-8.6.1
+cp -v -r  ../html/* ${FAKEROOT}/usr/share/doc/tcl-8.6.1
+
+#################
+} # END OF FILE #
+#################
+

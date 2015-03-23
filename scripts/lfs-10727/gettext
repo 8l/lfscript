@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Linux From Scratch is released under the MIT license.
+# Copyright (C) 1999-2014, Gerard Beekmans
+
+WGETLIST="http://ftp.gnu.org/gnu/gettext/gettext-0.19.2.tar.xz"
+MD5SUMLIST="1e6a827f5fbd98b3d40bd16b803acc44"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --docdir=/usr/share/doc/gettext-0.19.2
+
+make
+
+make DESTDIR=${FAKEROOT} install
+
+######################################################
+}; preparation() { # CONSTRUCTING A TEMPORARY SYSTEM #
+######################################################
+
+cd gettext-tools
+EMACS="no" ./configure --prefix=/tools --disable-shared
+
+make -C gnulib-lib
+make -C src msgfmt
+make -C src msgmerge
+make -C src xgettext
+
+cp -v src/{msgfmt,msgmerge,xgettext} /tools/bin
+
+#################
+} # END OF FILE #
+#################
+

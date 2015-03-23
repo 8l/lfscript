@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://archive.apache.org/dist/xmlgraphics/fop/source/fop-1.1-src.tar.gz
+          http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib-linux-amd64.tar.gz
+          http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib-linux-i586.tar.gz"
+MD5SUMLIST="7b63af514b28c06fe710a794cbf4d68e
+            dontverify
+            dontverify"
+REQUIRES="apache-ant"
+POSTINST="now"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+case `uname -m` in
+  i?86)
+    tar -xf ../jai-1_1_3-lib-linux-i586.tar.gz
+    cp -v jai-1_1_3/lib/{jai*,mlibwrapper_jai.jar} $JAVA_HOME/jre/lib/ext/
+    cp -v jai-1_1_3/lib/libmlib_jai.so             $JAVA_HOME/jre/lib/i386/
+    ;;
+
+  x86_64)
+    tar -xf ../jai-1_1_3-lib-linux-amd64.tar.gz
+    cp -v jai-1_1_3/lib/{jai*,mlibwrapper_jai.jar} $JAVA_HOME/jre/lib/ext/
+    cp -v jai-1_1_3/lib/libmlib_jai.so             $JAVA_HOME/jre/lib/amd64/
+    ;;
+esac
+
+ant compile
+ant jar-main
+ant javadocs
+mv build/javadocs .
+
+ant docs
+
+install -v -d -m755                                     ${FAKEROOT}/opt/fop-1.1
+cp -v  KEYS LICENSE NOTICE README                       ${FAKEROOT}/opt/fop-1.1
+cp -va build conf examples fop* javadocs lib status.xml ${FAKEROOT}/opt/fop-1.1
+
+ln -v -sf fop-1.1 ${FAKEROOT}/opt/fop
+
+cat > ${FAKEROOT}/etc/skel/.foprc << "EOF"
+FOP_OPTS="-Xmx<RAM_Installed>m"
+FOP_HOME="/opt/fop"
+EOF
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+FOP_OPTS="-Xmx768m"
+
+#################
+} # END OF FILE #
+#################
+

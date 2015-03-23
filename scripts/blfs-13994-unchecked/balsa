@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://pawsa.fedorapeople.org/balsa/balsa-2.5.1.tar.bz2"
+MD5SUMLIST="afd175b4de2c6cc685ace50dc3ad61ff"
+REQUIRES="aspell enchant gmime libesmtp rarian"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i "/(HAVE_CONFIG_H)/i \
+#include <glib-2.0/glib.h>" src/main-window.c
+
+./configure --prefix=/usr            \
+            --sysconfdir=/etc/gnome  \
+            --localstatedir=/var/lib \
+            --with-rubrica           \
+            --without-html-widget    \
+            --without-libnotify      \
+            --without-nm             \
+            --without-gtkspell
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

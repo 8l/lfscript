@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://libmpeg2.sourceforge.net/files/libmpeg2-0.5.1.tar.gz"
+MD5SUMLIST="0f92c7454e58379b4a5a378485bbd8ef"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's/static const/static/' libmpeg2/idct_mmx.c
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/mpeg2dec-0.5.1
+install -v -m644 README doc/libmpeg2.txt \
+                    ${FAKEROOT}/usr/share/doc/mpeg2dec-0.5.1
+
+#################
+} # END OF FILE #
+#################
+

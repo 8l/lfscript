@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.freedesktop.org/pub/mesa/10.2.6/MesaLib-10.2.6.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/MesaLib-10.2.6-add_xdemos-1.patch"
+MD5SUMLIST="959c3ec8124fb6652994ec4a51cc049e
+            255637c4bee10e6af1a7ad396a435bbc"
+REQUIRES="elfutils libdrm llvm python2 x7lib xorg-env"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../MesaLib-10.2.6-add_xdemos-1.patch
+
+./autogen.sh CFLAGS="-O2" CXXFLAGS="-O2"   \
+            --prefix=$XORG_PREFIX          \
+            --sysconfdir=/etc              \
+            --enable-texture-float         \
+            --enable-gles1                 \
+            --enable-gles2                 \
+            --enable-openvg                \
+            --enable-osmesa                \
+            --enable-xa                    \
+            --enable-gbm                   \
+            --enable-gallium-egl           \
+            --enable-gallium-gbm           \
+            --enable-glx-tls               \
+            --with-egl-platforms="drm,x11" \
+            --with-gallium-drivers="nouveau,r300,r600,radeonsi,svga,swrast"
+make
+
+make -C xdemos DEMOS_PREFIX=$XORG_PREFIX
+
+make DESTDIR=${FAKEROOT} install
+
+make DESTDIR=${FAKEROOT} -C xdemos DEMOS_PREFIX=$XORG_PREFIX install
+
+install -v -dm755 ${FAKEROOT}/usr/share/doc/MesaLib-10.2.6
+cp -rfv docs/* ${FAKEROOT}/usr/share/doc/MesaLib-10.2.6
+
+#################
+} # END OF FILE #
+#################
+

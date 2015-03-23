@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://anduin.linuxfromscratch.org/sources/other/libvpx-v1.3.0.tar.xz"
+MD5SUMLIST="528cb52934d9a731dfc0a2853b1e260d"
+REQUIRES="which yasm"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's/cp -p/cp/' build/make/Makefile
+chmod -v 644 vpx/*.h
+mkdir ../libvpx-build
+cd ../libvpx-build
+../libvpx-v1.3.0/configure --prefix=/usr \
+                           --enable-shared \
+                           --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

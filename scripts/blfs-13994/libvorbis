@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.4.tar.xz"
+MD5SUMLIST="55f2288055e44754275a17c9a2497391"
+REQUIRES="libogg"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m644 doc/Vorbis* ${FAKEROOT}/usr/share/doc/libvorbis-1.3.4
+
+#################
+} # END OF FILE #
+#################
+

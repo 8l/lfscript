@@ -1,0 +1,191 @@
+diff -rupN old/BOOK/chapter05/stripping.xml new/BOOK/chapter05/stripping.xml
+--- old/BOOK/chapter05/stripping.xml	2014-02-18 08:16:55.000000000 +0100
++++ new/BOOK/chapter05/stripping.xml	2014-06-10 22:57:03.901908122 +0200
+@@ -16,7 +16,9 @@
+   debugging symbols. Remove those symbols with:</para>
+ 
+ <screen><userinput>strip --strip-debug /tools/lib/*
+-/usr/bin/strip --strip-unneeded /tools/{,s}bin/*</userinput></screen>
++# (*) '/usr/bin/strip' might not work, so compromise and use 'strip' from the toolchain
++#/usr/sbin/strip --strip-unneeded /tools/{,s}bin/*
++strip --strip-unneeded /tools/{,s}bin/*</userinput></screen>
+ 
+   <para>These commands will skip a number of files, reporting that it does not
+   recognize their file format. Most of these are scripts instead of binaries.
+diff -rupN old/BOOK/chapter06/bash.xml new/BOOK/chapter06/bash.xml
+--- old/BOOK/chapter06/bash.xml	2014-04-18 23:26:17.000000000 +0200
++++ new/BOOK/chapter06/bash.xml	2014-06-10 22:57:03.901908122 +0200
+@@ -95,6 +95,9 @@
+ 
+ <screen><userinput remap="install">make install</userinput></screen>
+ 
++<screen><userinput remap="install"># (*) This will add the '/bin/sh' symlink to the package archive.
++ln -s bash /bin/sh</userinput></screen>
++
+     <para>Run the newly compiled <command>bash</command> program (replacing the one that is
+     currently being executed):</para>
+ 
+diff -rupN old/BOOK/chapter06/e2fsprogs.xml new/BOOK/chapter06/e2fsprogs.xml
+--- old/BOOK/chapter06/e2fsprogs.xml	2014-06-04 20:52:33.000000000 +0200
++++ new/BOOK/chapter06/e2fsprogs.xml	2014-06-10 22:57:03.905908122 +0200
+@@ -154,14 +154,16 @@ PKG_CONFIG_PATH=/tools/lib/pkgconfig \
+     commands.</para>
+ 
+ <screen><userinput remap="install">gunzip -v /usr/share/info/libext2fs.info.gz
+-install-info --dir-file=/usr/share/info/dir /usr/share/info/libext2fs.info</userinput></screen>
++# (*) 'install-info' will automatically be done in post-installation
++#install-info --dir-file=/usr/share/info/dir /usr/share/info/libext2fs.info</userinput></screen>
+ 
+     <para>If desired, create and install some additional documentation by
+     issuing the following commands:</para>
+ 
+ <screen><userinput remap="install">makeinfo -o      doc/com_err.info ../lib/et/com_err.texinfo
+ install -v -m644 doc/com_err.info /usr/share/info
+-install-info --dir-file=/usr/share/info/dir /usr/share/info/com_err.info</userinput></screen>
++# (*) 'install-info' will automatically be done in post-installation
++#install-info --dir-file=/usr/share/info/dir /usr/share/info/com_err.info</userinput></screen>
+   </sect2>
+ 
+   <sect2 id="contents-e2fsprogs" role="content">
+diff -rupN old/BOOK/chapter06/glibc.xml new/BOOK/chapter06/glibc.xml
+--- old/BOOK/chapter06/glibc.xml	2014-06-04 20:52:33.000000000 +0200
++++ new/BOOK/chapter06/glibc.xml	2014-06-10 22:57:03.905908122 +0200
+@@ -235,9 +235,12 @@ localedef -i zh_CN -f GB18030 zh_CN.GB18
+     <filename>glibc-&glibc-version;/localedata/SUPPORTED</filename> file
+     in the unlikely case you need them.</para>
+ 
++<!--
++    (*) Configuration contains commands that should be in the 'installation' section
+   </sect2>
+ 
+   <sect2 id="conf-glibc" role="configuration">
++-->
+     <title>Configuring Glibc</title>
+ 
+     <indexterm zone="conf-glibc">
+@@ -256,7 +259,8 @@ localedef -i zh_CN -f GB18030 zh_CN.GB18
+     <para>Create a new file <filename>/etc/nsswitch.conf</filename> by running the
+     following:</para>
+ 
+-<screen><userinput>cat &gt; /etc/nsswitch.conf &lt;&lt; "EOF"
++<!-- (*) Because commands are now in 'installation', they require remapping -->
++<screen><userinput remap="install">cat &gt; /etc/nsswitch.conf &lt;&lt; "EOF"
+ <literal># Begin /etc/nsswitch.conf
+ 
+ passwd: files
+@@ -275,7 +279,8 @@ rpc: files
+ EOF</userinput></screen>
+ 
+     <para>Install timezone data:</para>
+-<screen><userinput>tar -xf ../tzdata&tzdata-version;.tar.gz
++<!-- (*) Because commands are now in 'installation', they require remapping -->
++<screen><userinput remap="install">tar -xf ../tzdata&tzdata-version;.tar.gz
+ 
+ ZONEINFO=/usr/share/zoneinfo
+ mkdir -pv $ZONEINFO/{posix,right}
+@@ -330,6 +335,9 @@ unset ZONEINFO</userinput></screen>
+       </varlistentry>
+     </variablelist>
+ 
++  </sect2>
++  <!-- (*) From here on, commands actually are configuration -->
++  <sect2 id="conf-glibc" role="configuration">
+ 
+     <para>One way to determine the local time zone is to run the following
+     script:</para>
+diff -rupN old/BOOK/chapter06/revisedchroot.xml new/BOOK/chapter06/revisedchroot.xml
+--- old/BOOK/chapter06/revisedchroot.xml	2014-01-20 02:18:30.000000000 +0100
++++ new/BOOK/chapter06/revisedchroot.xml	2014-06-10 22:57:03.905908122 +0200
+@@ -12,7 +12,11 @@
+ 
+   <para>Finally, clean up some extra files left around from running tests:</para>
+ 
+-<screen><userinput>rm -rf /tmp/*</userinput></screen>
++<!--
++    (*) When this command is executed, the build manager is running on the host
++        system, so adjust the command to clean $LFS/tmp...
++-->
++<screen><userinput>rm -rf ${LFS}/tmp/*</userinput></screen>
+ 
+   <para>From now on, when reentering the chroot environment after
+   exiting, use the following modified chroot command:</para>
+diff -rupN old/BOOK/chapter06/texinfo.xml new/BOOK/chapter06/texinfo.xml
+--- old/BOOK/chapter06/texinfo.xml	2013-12-08 01:19:47.000000000 +0100
++++ new/BOOK/chapter06/texinfo.xml	2014-06-10 23:01:46.997896217 +0200
+@@ -76,6 +76,16 @@
+       </varlistentry>
+ 
+     </variablelist>
++  </sect2>
++
++  <!--
++    (*) By starting a 'configuration' section here, the rebuilding of
++        '/usr/share/info/dir' will be done in post-installation, and will
++        therefore always automatically run after a system installation.
++  -->
++
++  <sect2 role="configuration">
++    <title>Configuring Texinfo</title>
+ 
+     <para>The Info documentation system uses a plain text file to hold its list of
+     menu entries. The file is located at <filename>/usr/share/info/dir</filename>.
+@@ -85,7 +95,8 @@
+     recreated, the following optional commands will accomplish the task:</para>
+ 
+ <screen role="nodump"><userinput>cd /usr/share/info
+-rm -v dir
++# (*) Without '-f', 'rm' would fail if 'dir' does not exist
++rm -fv dir
+ for f in *
+ do install-info $f dir 2&gt;/dev/null
+ done</userinput></screen>
+diff -rupN old/BOOK/chapter06/util-linux.xml new/BOOK/chapter06/util-linux.xml
+--- old/BOOK/chapter06/util-linux.xml	2014-02-18 08:16:55.000000000 +0100
++++ new/BOOK/chapter06/util-linux.xml	2014-06-10 22:57:03.905908122 +0200
+@@ -50,9 +50,14 @@
+     following:</para>
+ 
+ <screen><userinput remap="pre">sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
+-          $(grep -rl '/etc/adjtime' .)
++          $(grep -rl '/etc/adjtime' .)</userinput></screen>
+ 
+-mkdir -pv /var/lib/hwclock</userinput></screen>
++<!--
++    (*) By remapping the 'mkdir' command to 'install', the directory will be
++        created in DESTDIR.
++-->
++
++<screen><userinput remap="install">mkdir -pv /var/lib/hwclock</userinput></screen>
+ 
+   </sect2>
+ 
+diff -rupN old/BOOK/chapter06/vim.xml new/BOOK/chapter06/vim.xml
+--- old/BOOK/chapter06/vim.xml	2013-08-11 20:11:25.000000000 +0200
++++ new/BOOK/chapter06/vim.xml	2014-06-10 22:57:03.905908122 +0200
+@@ -159,8 +159,11 @@ EOF</userinput></screen>
+     <para>Documentation for other available options can be obtained by
+     running the following command:</para>
+ 
++<!--
++    (*) This command opens an interactive application. So, we must disable it
++        for the installation to be able to finish without user interaction.
+ <screen role="nodump"><userinput>vim -c ':options'</userinput></screen>
+-
++-->
+     <note>
+       <para>By default, Vim only installs spell files for the English language.
+       To install spell files for your preferred language, download the
+diff -rupN old/BOOK/packages.ent new/BOOK/packages.ent
+--- old/BOOK/packages.ent	2014-06-04 20:52:33.000000000 +0200
++++ new/BOOK/packages.ent	2014-06-10 23:00:50.977898573 +0200
+@@ -397,6 +397,10 @@
+ <!ENTITY libstdcpp-ch5-du "734 MB">
+ <!ENTITY libstdcpp-ch5-sbu "0.4 SBU">
+ 
++<!-- (*) Libstdc++ is part of the GCC sources -->
++<!ENTITY libstdc++-url "&gcc-url;">
++<!ENTITY libstdc++-md5 "&gcc-md5;">
++
+ <!ENTITY libtool-version "2.4.2">
+ <!ENTITY libtool-size "2,571 KB">
+ <!ENTITY libtool-url "&gnu;libtool/libtool-&libtool-version;.tar.gz">

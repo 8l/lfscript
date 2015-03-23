@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://xorg.freedesktop.org/archive/individual/driver/xf86-video-sis-0.10.7.tar.bz2
+          http://www.linuxfromscratch.org/patches/blfs/svn/xf86-video-sis-0.10.7-upstream_fixes-1.patch"
+MD5SUMLIST="f01e5e20e37342acf1983d269886171b
+            808f7679574d08b690ec9e4e4ac0a0f7"
+REQUIRES="xorg-env xorg-server"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../xf86-video-sis-0.10.7-upstream_fixes-1.patch
+./configure $XORG_CONFIG
+make
+
+make DESTDIR=${FAKEROOT} install
+
+#################
+} # END OF FILE #
+#################
+

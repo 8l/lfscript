@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://downloads.sourceforge.net/libquicktime/libquicktime-1.2.4.tar.gz
+          http://www.linuxfromscratch.org/patches/blfs/svn/libquicktime-1.2.4-ffmpeg2-1.patch"
+MD5SUMLIST="81cfcebad9b7ee7e7cfbefc861d6d61b
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../libquicktime-1.2.4-ffmpeg2-1.patch
+
+./configure --prefix=/usr     \
+            --enable-gpl      \
+            --without-doxygen \
+            --docdir=/usr/share/doc/libquicktime-1.2.4
+make
+
+make DESTDIR=${FAKEROOT} install
+install -v -m755 -d ${FAKEROOT}/usr/share/doc/libquicktime-1.2.4
+install -v -m644    README doc/{*.txt,*.html,mainpage.incl} \
+                    ${FAKEROOT}/usr/share/doc/libquicktime-1.2.4
+
+#################
+} # END OF FILE #
+#################
+

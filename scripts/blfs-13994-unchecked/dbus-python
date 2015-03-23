@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://dbus.freedesktop.org/releases/dbus-python/dbus-python-1.2.0.tar.gz"
+MD5SUMLIST="b09cd2d1a057cc432ce944de3fc06bf7"
+REQUIRES="dbus-glib python2 python3"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+mkdir python2
+pushd python2
+PYTHON=/usr/bin/python     \
+../configure --prefix=/usr --docdir=/usr/share/doc/dbus-python-1.2.0
+make
+popd
+
+mkdir python3
+pushd python3
+PYTHON=/usr/bin/python3    \
+../configure --prefix=/usr --docdir=/usr/share/doc/dbus-python-1.2.0
+make
+popd
+
+make DESTDIR=${FAKEROOT} -C python2 install
+
+make DESTDIR=${FAKEROOT} -C python3 install
+
+#################
+} # END OF FILE #
+#################
+

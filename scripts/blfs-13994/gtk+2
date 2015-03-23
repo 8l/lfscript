@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.24.tar.xz"
+MD5SUMLIST="f80ac8aa95ea8482ad89656d0370752e"
+REQUIRES="atk gdk-pixbuf pango"
+POSTINST="true"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i 's#l \(gtk-.*\).sgml#& -o \1#' docs/{faq,tutorial}/Makefile.in
+sed -i 's#.*@man_#man_#' docs/reference/gtk/Makefile.in
+sed -i -e 's#pltcheck.sh#$(NULL)#g' gtk/Makefile.in
+./configure --prefix=/usr --sysconfdir=/etc
+make
+
+make DESTDIR=${FAKEROOT} install
+
+# (*) Example configuration
+#cat > ${FAKEROOT}/etc/skel/.gtkrc-2.0 << "EOF"
+#include "/usr/share/themes/Glider/gtk-2.0/gtkrc"
+#gtk-icon-theme-name = "hicolor"
+#EOF
+
+###################################################
+}; postinst() { # POST-INSTALLATION CONFIGURATION #
+###################################################
+
+gtk-query-immodules-2.0 --update-cache
+
+# (*) Example configuration
+#cat > /etc/gtk-2.0/gtkrc << "EOF"
+#include "/usr/share/themes/Clearlooks/gtk-2.0/gtkrc"
+#gtk-icon-theme-name = "elementary"
+#EOF
+
+#################
+} # END OF FILE #
+#################
+

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnome.org/pub/gnome/sources/ptlib/2.10/ptlib-2.10.10.tar.xz
+          http://www.linuxfromscratch.org/patches/blfs/svn/ptlib-2.10.10-bison_fixes-1.patch"
+MD5SUMLIST="1fd609e25f101393bb7e42fbf874c174
+            dontverify"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+patch -Np1 -i ../ptlib-2.10.10-bison_fixes-1.patch
+
+./configure --prefix=/usr
+make
+
+make DESTDIR=${FAKEROOT} install
+chmod -v 755 ${FAKEROOT}/usr/lib/libpt.so.2.10.10
+
+#################
+} # END OF FILE #
+#################
+

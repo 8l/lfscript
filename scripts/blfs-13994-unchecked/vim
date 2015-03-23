@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="ftp://ftp.vim.org/pub/vim/unix/vim-7.4.tar.bz2"
+MD5SUMLIST="607e135c559be642f210094ad023dc65"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+echo '#define SYS_VIMRC_FILE  "/etc/vimrc"' >>  src/feature.h
+echo '#define SYS_GVIMRC_FILE "/etc/gvimrc"' >> src/feature.h
+./configure --prefix=/usr --with-features=huge
+make
+
+make DESTDIR=${FAKEROOT} install
+
+ln -snfv ../vim/vim74/doc ${FAKEROOT}/usr/share/doc/vim-7.4
+
+rsync -avzcP --delete --exclude="/dos/" --exclude="/spell/" \
+    ftp.nluug.nl::Vim/runtime/ ./runtime/
+
+make DESTDIR=${FAKEROOT} -C src installruntime
+vim -c ":helptags ${FAKEROOT}/usr/share/doc/vim-7.4" -c ":q"
+
+#################
+} # END OF FILE #
+#################
+

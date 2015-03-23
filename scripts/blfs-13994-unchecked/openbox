@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://openbox.org/dist/openbox/openbox-3.5.2.tar.gz"
+MD5SUMLIST="93df606606053b7e8578a5c116afb8ec"
+REQUIRES="libxml2 pango xorg xorg-env"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+export LIBRARY_PATH=$XORG_PREFIX/lib
+
+./configure --prefix=/usr     \
+            --sysconfdir=/etc \
+            --disable-static  \
+            --docdir=/usr/share/doc/openbox-3.5.2
+make
+
+make DESTDIR=${FAKEROOT} install
+
+cp -rf ${FAKEROOT}/etc/xdg/openbox ${FAKEROOT}/etc/skel/.config
+
+# (*) Configuration information
+#ls -d /usr/share/themes/*/openbox-3 | sed 's#.*es/##;s#/o.*##'
+
+echo openbox > ${FAKEROOT}/etc/alternatives/xinitrc/openbox.xinitrc
+
+# (*) Example configuration
+#cat > ~/.xinitrc << "EOF"
+#display -backdrop -window root /path/to/beautiful/picture.jpeg
+#exec openbox
+#EOF
+
+# (*) Example configuration
+#cat > ~/.xinitrc << "EOF"
+## make an array which lists the pictures:
+#picture_list=(~/.config/backgrounds/*)
+## create a random integer between 0 and the number of pictures:
+#random_number=$(( ${RANDOM} % ${#picture_list[@]} ))
+## display the chosen picture:
+#display -backdrop -window root "${picture_list[${random_number}]}"
+#exec openbox
+#EOF
+
+# (*) Example configuration
+#cat > ~/.xinitrc << "EOF"
+#. /etc/profile
+#picture_list=(~/.config/backgrounds/*)
+#random_number=$(( ${RANDOM} % ${#picture_list[*]} ))
+#display -backdrop -window root "${picture_list[${random_number}]}"
+#numlockx
+#eval $(dbus-launch --auto-syntax --exit-with-session)
+#lxpanel &
+#exec openbox
+#EOF
+
+#################
+} # END OF FILE #
+#################
+

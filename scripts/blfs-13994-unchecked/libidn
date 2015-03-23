@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://ftp.gnu.org/gnu/libidn/libidn-1.29.tar.gz"
+MD5SUMLIST="2b67bb507207af379f9461e1307dc84b"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+./configure --prefix=/usr --disable-static
+make
+
+make DESTDIR=${FAKEROOT} install
+
+find doc -name "Makefile*" -delete
+rm -rf -v doc/{gdoc,idn.1,stamp-vti,man,texi}
+mkdir -v       ${FAKEROOT}/usr/share/doc/libidn-1.29
+cp -r -v doc/* ${FAKEROOT}/usr/share/doc/libidn-1.29
+
+#################
+} # END OF FILE #
+#################
+

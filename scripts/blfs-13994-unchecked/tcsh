@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# The instructions in this file are extracted from
+# 'Beyond Linux From Scratch' (2014-08-22 / r13994) but are modified for use
+# with LFScript 4 which installs the software to a fake root directory.
+#
+# Beyond Linux From Scratch is released under the MIT license.
+# Copyright (C) 2001-2014, The BLFS Development Team
+
+WGETLIST="http://www.sfr-fresh.com/unix/misc/tcsh-6.18.01.tar.gz"
+MD5SUMLIST="6eed09dbd4223ab5b6955378450d228a"
+
+###############################################
+installation() { # INSTALLING SYSTEM SOFTWARE #
+###############################################
+
+sed -i -e 's|\$\*|#&|' -e 's|fR/g|&m|' tcsh.man2html
+
+./configure --prefix=/usr --bindir=/bin
+make
+sh ./tcsh.man2html
+
+make DESTDIR=${FAKEROOT} install install.man
+ln -v -sf tcsh   ${FAKEROOT}/bin/csh
+ln -v -sf tcsh.1 ${FAKEROOT}/usr/share/man/man1/csh.1
+install -v -m755 -d          ${FAKEROOT}/usr/share/doc/tcsh-6.18.01/html
+install -v -m644 tcsh.html/* ${FAKEROOT}/usr/share/doc/tcsh-6.18.01/html
+install -v -m644 FAQ         ${FAKEROOT}/usr/share/doc/tcsh-6.18.01
+
+cat >> ${FAKEROOT}/etc/shells << "EOF"
+/bin/tcsh
+/bin/csh
+EOF
+
+#################
+} # END OF FILE #
+#################
+
