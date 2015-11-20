@@ -1,20 +1,20 @@
 #!/bin/bash
 
 # The instructions in this file are extracted from
-# 'Linux From Scratch 7.6' (SVN-20140821 / r10727) but are modified for use
+# 'Linux From Scratch 7.8' 
 # with LFScript 4 which installs the software to a fake root directory.
 #
 # Linux From Scratch is released under the MIT license.
 # Copyright (C) 1999-2014, Gerard Beekmans
 
-WGETLIST="http://ftp.gnu.org/gnu/gcc/gcc-4.9.1/gcc-4.9.1.tar.bz2
-          http://ftp.gnu.org/gnu//gmp/gmp-6.0.0a.tar.xz
-          http://www.mpfr.org/mpfr-3.1.2/mpfr-3.1.2.tar.xz
-          http://www.multiprecision.org/mpc/download/mpc-1.0.2.tar.gz"
-MD5SUMLIST="fddf71348546af523353bd43d34919c1
-            1e6da4e434553d2811437aa42c7f7c76
-            e3d203d188b8fe60bb6578dd3152e05c
-            68fadff3358fb3e7976c7a398a0af4c3"
+WGETLIST="https://ftp.gnu.org/gnu/gcc/gcc-5.2.0/gcc-5.2.0.tar.bz2
+          https://gmplib.org/download/gmp/gmp-6.1.0.tar.xz
+          http://www.mpfr.org/mpfr-current/mpfr-3.1.3.tar.xz
+          http://www.multiprecision.org/mpc/download/mpc-1.0.3.tar.gz"
+MD5SUMLIST="a51bcfeb3da7dd4c623e27207ed43467
+            a9868ef2556ad6a2909babcd1428f3c7
+            6969398cd2fbc56a6af570b5273c56a9
+            d6a1d5f8ddea3abd2cc3e98f58352d26"
 
 ###############################################
 installation() { # INSTALLING SYSTEM SOFTWARE #
@@ -26,7 +26,7 @@ mkdir -v ../gcc-build
 cd ../gcc-build
 
 SED=sed                       \
-../gcc-4.9.1/configure        \
+../gcc-5.2.0/configure        \
      --prefix=/usr            \
      --enable-languages=c,c++ \
      --disable-multilib       \
@@ -42,7 +42,7 @@ ln -sv ../usr/bin/cpp ${FAKEROOT}/lib
 ln -sv gcc ${FAKEROOT}/usr/bin/cc
 
 install -v -dm755 ${FAKEROOT}/usr/lib/bfd-plugins
-ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/4.9.1/liblto_plugin.so ${FAKEROOT}/usr/lib/bfd-plugins/
+ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/5.2.0/liblto_plugin.so ${FAKEROOT}/usr/lib/bfd-plugins/
 
 mkdir -pv ${FAKEROOT}/usr/share/gdb/auto-load/usr/lib
 mv -v ${FAKEROOT}/usr/lib/*gdb.py ${FAKEROOT}/usr/share/gdb/auto-load/usr/lib
@@ -51,12 +51,12 @@ mv -v ${FAKEROOT}/usr/lib/*gdb.py ${FAKEROOT}/usr/share/gdb/auto-load/usr/lib
 }; preparation_pass1() { # CONSTRUCTING A TEMPORARY SYSTEM (PASS 1) #
 #####################################################################
 
-tar -xf ../mpfr-3.1.2.tar.xz
-mv -v mpfr-3.1.2 mpfr
-tar -xf ../gmp-6.0.0a.tar.xz
-mv -v gmp-6.0.0 gmp
-tar -xf ../mpc-1.0.2.tar.gz
-mv -v mpc-1.0.2 mpc
+tar -xf ../mpfr-3.1.3.tar.xz
+mv -v mpfr-3.1.3 mpfr
+tar -xf ../gmp-6.1.0.tar.xz
+mv -v gmp-6.1.0 gmp
+tar -xf ../mpc-1.0.3.tar.gz
+mv -v mpc-1.0.3 mpc
 
 for file in \
  $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
@@ -79,7 +79,7 @@ sed -i 's/if \((code.*))\)/if (\1 \&\& \!DEBUG_INSN_P (insn))/' gcc/sched-deps.c
 mkdir -v ../gcc-build
 cd ../gcc-build
 
-../gcc-4.9.1/configure                               \
+../gcc-5.2.0/configure                               \
     --target=$LFS_TGT                                \
     --prefix=/tools                                  \
     --with-sysroot=$LFS                              \
@@ -144,7 +144,7 @@ CC=$LFS_TGT-gcc                                      \
 CXX=$LFS_TGT-g++                                     \
 AR=$LFS_TGT-ar                                       \
 RANLIB=$LFS_TGT-ranlib                               \
-../gcc-4.9.1/configure                               \
+../gcc-5.2.0/configure                               \
     --prefix=/tools                                  \
     --with-local-prefix=/tools                       \
     --with-native-system-header-dir=/tools/include   \

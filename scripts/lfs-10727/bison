@@ -7,8 +7,8 @@
 # Linux From Scratch is released under the MIT license.
 # Copyright (C) 1999-2014, Gerard Beekmans
 
-WGETLIST="http://ftp.gnu.org/gnu/bison/bison-3.0.2.tar.xz"
-MD5SUMLIST="146be9ff9fbd27497f0bf2286a5a2082"
+WGETLIST="https://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.xz"
+MD5SUMLIST="c342201de104cc9ce0a21e0ad10d4021"
 
 ###############################################
 installation() { # INSTALLING SYSTEM SOFTWARE #

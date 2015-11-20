@@ -7,8 +7,8 @@
 # Linux From Scratch is released under the MIT license.
 # Copyright (C) 1999-2014, Gerard Beekmans
 
-WGETLIST="http://download.savannah.gnu.org/releases/libpipeline/libpipeline-1.3.0.tar.gz"
-MD5SUMLIST="242428c01dca255cdcb2195073a9c6ed"
+WGETLIST="http://ftp.clfs.org/pub/clfs/conglomeration/libpipeline/libpipeline-1.4.1.tar.gz"
+MD5SUMLIST="e54590ec68d6c1239f67b5b44e92022c"
 
 ###############################################
 installation() { # INSTALLING SYSTEM SOFTWARE #

@@ -7,8 +7,8 @@
 # Linux From Scratch is released under the MIT license.
 # Copyright (C) 1999-2014, Gerard Beekmans
 
-WGETLIST="http://ftp.acc.umu.se/mirror/gnu.org/savannah/attr/attr-2.4.47.src.tar.gz"
 # WGETLIST="http://download.savannah.gnu.org/releases/attr/attr-2.4.47.src.tar.gz"
+WGETLIST="http://ftp.acc.umu.se/mirror/gnu.org/savannah/attr/attr-2.4.47.src.tar.gz"
 MD5SUMLIST="84f58dec00b60f2dc8fd1c9709291cc7"
 
 ###############################################

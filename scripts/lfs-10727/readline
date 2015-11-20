@@ -8,15 +8,15 @@
 # Copyright (C) 1999-2014, Gerard Beekmans
 
 WGETLIST="http://ftp.gnu.org/gnu/readline/readline-6.3.tar.gz
-          http://www.linuxfromscratch.org/patches/lfs/development/readline-6.3-upstream_fixes-2.patch"
+          http://www.linuxfromscratch.org/patches/lfs/development/readline-6.3-upstream_fixes-3.patch"
 MD5SUMLIST="33c8fb279e981274f485fd91da77e94a
-            97f74f1c3c83008f268b32d36e9fd376"
+            6b0d9f4e79319d56a7fee9b35e5cfd1b"
 
 ###############################################
 installation() { # INSTALLING SYSTEM SOFTWARE #
 ###############################################
 
-patch -Np1 -i ../readline-6.3-upstream_fixes-2.patch
+patch -Np1 -i ../readline-6.3-upstream_fixes-3.patch
 
 sed -i '/MV.*old/d' Makefile.in
 sed -i '/{OLDSUFF}/c:' support/shlib-install

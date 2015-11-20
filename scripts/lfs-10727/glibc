@@ -7,11 +7,14 @@
 # Linux From Scratch is released under the MIT license.
 # Copyright (C) 1999-2014, Gerard Beekmans
 
-WGETLIST="http://ftp.gnu.org/gnu/glibc/glibc-2.19.tar.xz
+WGETLIST="http://ftp.gnu.org/gnu/glibc/glibc-2.22.tar.xz
           http://www.iana.org/time-zones/repository/releases/tzdata2014f.tar.gz
-          http://www.linuxfromscratch.org/patches/lfs/development/glibc-2.19-fhs-1.patch"
-MD5SUMLIST="e26b8cc666b162f999404b03970f14e4
+          http://www.linuxfromscratch.org/patches/lfs/development/glibc-2.22-largefile-1.patch
+	  http://www.linuxfromscratch.org/patches/lfs/development/glibc-2.22-fhs-1.patch"
+
+MD5SUMLIST="e51e02bf552a0a1fbbdc948fb2f5e83c
             f333b2e8f876221a97871cae0c188aa5
+	    203fe9133e82f2b59969c116b70fd84e
             9a5997c3452909b1769918c759eff8a2"
 POSTINST="now"
 
@@ -21,12 +24,14 @@ installation() { # INSTALLING SYSTEM SOFTWARE #
 
 sed -i 's/\\$$(pwd)/`pwd`/' timezone/Makefile
 
-patch -Np1 -i ../glibc-2.19-fhs-1.patch
+patch -Np1 -i ../glibc-2.22-fhs-1.patch
+
+patch -Np1 -i ../glibc-2.22-largefile-1.patch
 
 mkdir -v ../glibc-build
 cd ../glibc-build
 
-../glibc-2.19/configure    \
+../glibc-2.22/configure    \
     --prefix=/usr          \
     --disable-profile      \
     --enable-kernel=2.6.32 \
@@ -38,7 +43,7 @@ touch ${FAKEROOT}/etc/ld.so.conf
 
 make install_root=${FAKEROOT} install
 
-cp -v ../glibc-2.19/nscd/nscd.conf ${FAKEROOT}/etc/nscd.conf
+cp -v ../glibc-2.22/nscd/nscd.conf ${FAKEROOT}/etc/nscd.conf
 mkdir -pv ${FAKEROOT}/var/cache/nscd
 
 make install_root=${FAKEROOT} localedata/install-locales
@@ -119,10 +124,10 @@ fi
 mkdir -v ../glibc-build
 cd ../glibc-build
 
-../glibc-2.19/configure                             \
+../glibc-2.22/configure                             \
       --prefix=/tools                               \
       --host=$LFS_TGT                               \
-      --build=$(../glibc-2.19/scripts/config.guess) \
+      --build=$(../glibc-2.22/scripts/config.guess) \
       --disable-profile                             \
       --enable-kernel=2.6.32                        \
       --with-headers=/tools/include                 \

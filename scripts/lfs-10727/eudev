@@ -7,11 +7,9 @@
 # Linux From Scratch is released under the MIT license.
 # Copyright (C) 1999-2014, Gerard Beekmans
 
-WGETLIST="http://dev.gentoo.org/~blueness/eudev/eudev-1.9.tar.gz
-          http://anduin.linuxfromscratch.org/sources/other/eudev-1.9-manpages.tar.bz2
+WGETLIST="http://dev.gentoo.org/~blueness/eudev/eudev-3.1.5.tar.gz
           http://anduin.linuxfromscratch.org/sources/other/udev-lfs-20140408.tar.bz2"
-MD5SUMLIST="da8083b30b44177445b21e8299af23a1
-            9742236280dfc34ba034173efd69f5cf
+MD5SUMLIST="c4dace42deecede102b6c01904042acc
             c2d6b127f89261513b23b6d458484099"
 
 ###############################################
@@ -43,8 +41,6 @@ BLKID_LIBS='-L/tools/lib -lblkid'   \
 make
 
 make DESTDIR=${FAKEROOT} install
-
-tar -xvf ../eudev-1.9-manpages.tar.bz2 -C ${FAKEROOT}/usr/share
 
 tar -xvf ../udev-lfs-20140408.tar.bz2
 make DESTDIR=${FAKEROOT} -f udev-lfs-20140408/Makefile.lfs install
